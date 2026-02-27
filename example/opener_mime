@@ -1,0 +1,33 @@
+#!/bin/sh -feu
+#
+# Example DFM_OPENER script using mimetype.
+#
+
+mime_type=$(file -bi "$1")
+
+case $mime_type in
+  audio/*)
+   exec mpv --no-video "$1"
+  ;;
+
+  video/*)
+    exec mpv "$1"
+  ;;
+
+  image/*)
+    exec gimp "$1"
+  ;;
+
+  text/html* | application/pdf*)
+    exec firefox "$1"
+  ;;
+
+  text/*)
+    exec "${EDITOR:=vi}" "$1"
+  ;;
+
+  *?*)
+    printf 'error: unhandled mime-type %s\n' "$mime_type" >&2
+  ;;
+esac
+

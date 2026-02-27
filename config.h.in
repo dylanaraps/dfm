@@ -1,0 +1,169 @@
+//
+// DFM - Dylan's File Manager - Configuration file.
+//
+#ifndef DFM_CONFIG_H
+#define DFM_CONFIG_H
+
+//
+// Name of the program.
+//
+#define CFG_NAME "$CFG_NAME"
+
+//
+// Default DFM_OPENER to use when unset in environment.
+//
+#define DFM_OPENER "xdg-open"
+
+//
+// Default DFM_COPYER to use when unset in environment.
+//
+#define DFM_COPYER "waycopy"
+
+//
+// Default DFM_BOOKMARK_[0-9] values when unset in environment.
+//
+#define DFM_BOOKMARK_0 ""
+#define DFM_BOOKMARK_1 ""
+#define DFM_BOOKMARK_2 ""
+#define DFM_BOOKMARK_3 ""
+#define DFM_BOOKMARK_4 ""
+#define DFM_BOOKMARK_5 ""
+#define DFM_BOOKMARK_6 ""
+#define DFM_BOOKMARK_7 ""
+#define DFM_BOOKMARK_8 ""
+#define DFM_BOOKMARK_9 ""
+
+//
+// Default sort mode.
+// See: fm_sort_fn()
+//
+#define DFM_DEFAULT_SORT 'n'
+
+//
+// Default view mode.
+// See: fm_draw_ent()
+//
+#define DFM_DEFAULT_VIEW 'n'
+
+//
+// Show hidden files by default.
+//
+#define DFM_SHOW_HIDDEN 0
+
+//
+// Disable colors.
+// Uncomment to disable all colors.
+//
+// #define DFM_NO_COLOR
+
+//
+// Default colors.
+// Value becomes: '\033[A;B;Cm'.
+//
+#ifndef DFM_NO_COLOR
+#define DFM_COL_CURSOR     VT_SGR(7,1)
+#define DFM_COL_DIR        VT_SGR(32,1)
+#define DFM_COL_FIFO       VT_SGR(33)
+#define DFM_COL_LNK        VT_SGR(36)
+#define DFM_COL_LNK_BRK    VT_SGR(31,7)
+#define DFM_COL_LNK_DIR    VT_SGR(34,1)
+#define DFM_COL_MARK       VT_SGR(31)
+#define DFM_COL_REG        VT_SGR(37)
+#define DFM_COL_REG_EXEC   VT_SGR(36)
+#define DFM_COL_SOCK       VT_SGR(35)
+#define DFM_COL_SPEC       VT_SGR(33,1)
+#define DFM_COL_UNKNOWN    VT_SGR(31,7)
+
+#define DFM_COL_NAV        VT_SGR(7)
+#define DFM_COL_NAV_ERR    VT_SGR(7,31)
+#define DFM_COL_NAV_MSG    VT_SGR(7,32)
+#define DFM_COL_NAV_CMD    VT_SGR(7,36)
+#define DFM_COL_NAV_ROOT   VT_SGR(7,33)
+#define DFM_COL_NAV_CURSOR VT_SGR(7,0)
+#define DFM_COL_NAV_MARK   VT_SGR(7,35,1)
+
+#else
+#define DFM_COL_CURSOR     VT_SGR(7,1)
+#define DFM_COL_DIR        ""
+#define DFM_COL_FIFO       ""
+#define DFM_COL_LNK        ""
+#define DFM_COL_LNK_BRK    VT_SGR(7)
+#define DFM_COL_LNK_DIR    VT_SGR(1)
+#define DFM_COL_MARK       ""
+#define DFM_COL_REG        ""
+#define DFM_COL_REG_EXEC   ""
+#define DFM_COL_SOCK       ""
+#define DFM_COL_SPEC       VT_SGR(1)
+#define DFM_COL_UNKNOWN    ""
+
+#define DFM_COL_NAV        VT_SGR(7)
+#define DFM_COL_NAV_ERR    VT_SGR(7)
+#define DFM_COL_NAV_MSG    VT_SGR(7)
+#define DFM_COL_NAV_CMD    VT_SGR(7)
+#define DFM_COL_NAV_ROOT   VT_SGR(7)
+#define DFM_COL_NAV_CURSOR VT_SGR(7)
+#define DFM_COL_NAV_MARK   VT_SGR(7,1)
+#endif
+
+//
+// Maximum buffer sizes.
+//
+#define DFM_IO_MAX   (1 << 13)
+#define DFM_NAME_MAX (1 <<  8)
+#define DFM_PATH_MAX (1 << 12)
+#define DFM_ENT_MAX  (1 << 20)
+#define DFM_DIR_MAX  (1 << 15)
+
+//
+// Size of hash table for directory entries (load factor ~0.66).
+// NOTE: Must be a power of 2.
+//
+#define DFM_DIR_HT_CAP (DFM_DIR_MAX << 1)
+
+//
+// Line editing buffer size.
+//
+#define RL_MAX (1 << 13)
+
+//
+// Reserve room before and after marks for command and extra arguments.
+// Marks are stored as an array of (char *) with the following layout:
+//
+// [DFM_MARK_CMD_PRE...][MARKS...][DFM_MARK_CMD_POST...][NULL]
+//
+// In order to run a command on marks dfm will simply write the caller's argv
+// into the free slots in DFM_MARK_CMD_PRE. Similarly, there is space after the
+// marks (DFM_MARK_CMD_PRE) where the caller can put arguments. Right now this
+// POST location is only used to append a path to some commands.
+//
+// After writing the caller's argv, the marks array is simply passed as-is to
+// exec. In other words, to call `rm -rf`, only two ptrs are copied
+//
+#define DFM_MARK_CMD_PRE 32
+#define DFM_MARK_CMD_POST 16
+
+//
+// What shell options to enable when spawning a shell via '!' or 'act_cmd_sh'.
+//
+#define DFM_SHELL_OPTS "-euc"
+
+//
+// Make information about the build available.
+//
+#define CC_DATE     "${CFG_DATE:-"$(date '+%Y-%m-%d %H:%M')"}"
+#define CC_BRANCH   "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo n/a)"
+#define CC_COMMIT   "$(git rev-parse HEAD 2>/dev/null || echo n/a)"
+#define CFG_VERSION "$CFG_VERSION"
+
+//
+// Space to leave for statusline.
+//
+#define DFM_MARGIN 3
+
+//
+// Configuration overrides from ./configure.
+//
+#include "$CFG_MACRO_GEN"
+
+#endif // DFM_CONFIG_H
+

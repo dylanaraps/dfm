@@ -1,0 +1,141 @@
+#!/bin/sh -eu
+#
+# DFM configure script.
+#
+# Copyright (c) 2026 Dylan Araps - MIT License
+#
+# The configure script takes three forms of arguments.
+#
+# 1) Long-opts:           --prefix=/usr --help
+# 2) Variables:           CC=/bin/cc CFLAGS="-O3" CONFIG_TINY=1
+# 3) C macro definitions: -DMACRO -DMACRO=VALUE -UMACRO
+#
+# Everything below, as well as in the Makefile.in and config.h.in files can be
+# configured via this script. Alternatively, you can edit the files directly,
+# refer to them for more information.
+#
+
+#
+# Program configuration.
+#
+export CFG_NAME=dfm
+export CFG_VERSION=0.99.0
+export c_version=c99
+
+#
+# DPP configuration.
+#
+export PATH="$PWD/bin:$PATH"
+export CFG_DPP_INCLUDE=./configure
+export CFG_DPP_CMD=bin/dpp
+
+#
+# Make configuration.
+#
+export CFG_MAKE_FILE=Makefile
+export CFG_MAKE_CONFIG=Makefile.in
+export CFG_MANUAL=README.txt
+export CFG_BUILD=config.h.in
+export CFG_BUILD_GEN=config.h
+export CFG_INPUT=config_key.h.in
+export CFG_INPUT_GEN=config_key.h
+export CFG_COMMAND_GEN=config_cmd.h
+export CFG_COMMAND=config_cmd.h.in
+export CFG_MACRO_GEN=.config_macro.h
+export CFG_MAKE_DEP="*/*.[ch] *.[ch] $CFG_MAKE_FILE $CFG_MAKE_CONFIG $CFG_DPP_INCLUDE"
+export CFG_IGNORE=.gitignore
+
+#
+# Installation
+#
+export prefix=/usr/local
+
+#
+# Build commands.
+#
+export RM="${RM:-rm}"
+export MKDIR="${MKDIR:-mkdir}"
+export CP="${CP:-cp}"
+export CC="${CC:-cc}"
+export STRIP="${STRIP:-strip}"
+
+#
+# Compiler flags.
+#
+export cc_flags="-std=$c_version -O2 -pipe"
+export cc_flags="$cc_flags -D_POSIX_C_SOURCE=200809L"
+export cc_flags="$cc_flags -D_BSD_SOURCE -D_XOPEN_SOURCE=500"
+export cc_flags="$cc_flags -Wall -Wextra -pedantic -Wshadow"
+
+
+#///////////////////////////////////////////////////////////////////////////////
+#
+# NOTE: Do not edit below this line.
+#
+case ${DPP_LEVEL:-} in '')
+  #
+  # Handle command-line arguments.
+  #
+  # '--prefix=/usr' -> 'export prefix=/usr'
+  # 'prefix=/usr'   -> 'export prefix=/usr'
+  # '-DWORD'        -> 'export WORD' 'CFLAGS+=-DWORD'
+  # '-DWORD=val'    -> 'export WORD' '#undef WORD\n#define WORD val'
+  # '-UWORD'        -> 'unset WORD'  'CFLAGS+=-UWORD'
+  #
+  for a do case $a in
+    --help) cat "$0"; exit 0 ;;
+       -D*=*) mo="${mo:-}$a
+" _a=${a#-D}; export "${_a%%=*}="  ;;
+       -D*) cc_flags="$cc_flags $a"; export "${a#-D}="  ;;
+       -U*) cc_flags="$cc_flags $a"; unset  "${a#-U}" ;;
+     *?=?*) export "${a#--}" ;;
+  esac done
+
+  #
+  # Build configurations.
+  #
+  case ${CONFIG_SMALL:=${CONFIG_TINY:=0}} in 1)
+    cc_flags="$cc_flags -Os -DNDEBUG"
+    cc_flags="$cc_flags -fno-asynchronous-unwind-tables -fno-unwind-tables"
+    cc_flags="$cc_flags -Wl,-z,norelro"
+    cc_flags="$cc_flags -no-pie"
+    cc_flags="$cc_flags -fno-plt"
+    strip_flags="${strip_flags:-} -s -R .comment -R .note"
+    strip_flags="$strip_flags --remove-section=.eh_frame"
+    strip_flags="$strip_flags --remove-section=.eh_frame_hdr"
+    export strip_flags
+
+    case ${CONFIG_TINY:=0} in 1)
+      cc_flags="$cc_flags -Oz"
+    esac
+  esac
+
+  #
+  # Generate macro overrides.
+  #
+  while IFS== read -r k v; do
+    echo "${k:+#undef ${k#-D}
+#define ${k#-D} $v}"
+  done <<EOF > "$CFG_MACRO_GEN"
+${mo:-}
+EOF
+
+  #
+  # Generate Makefile
+  #
+  "$CFG_DPP_CMD" < "$CFG_MAKE_CONFIG" > "$CFG_MAKE_FILE"
+
+  #
+  # Generate .gitignore.
+  #
+  cat <<EOF > "$CFG_IGNORE"
+$CFG_IGNORE
+$CFG_NAME
+$CFG_MACRO_GEN
+$CFG_BUILD_GEN
+$CFG_COMMAND_GEN
+$CFG_INPUT_GEN
+$CFG_MAKE_FILE
+EOF
+esac
+

@@ -1,0 +1,190 @@
+//
+// DFM - Dylan's File Manager - Keybinding Configuration file.
+//
+// There are three key types.
+//
+// 1) Simple ASCII: 'a', 'B', etc.
+// 2) UTF8:         u8("ρ") u8("Σ")
+// 3) Symbolic:     KEY_LEFT, KEY_DOWN
+//
+// Key types can be joined to modifiers using the K() macro.
+//
+// K(MOD_CTRL,  'a')
+// K(MOD_SHIFT, u8("φ"))
+// K(MOD_ALT,   KEY_TAB)
+//
+// Everything above expands at compile-time to unique 32bit integers.
+// For the full list of symbolic keys, look at lib/term_key.h
+//
+
+//
+// There are two function types that can be bound.
+//
+// 1) act_.*  - Internal file manager actions (dfm.c)
+// 2) cmd_.*  - External configurable commands (config_cmd.h)
+//
+// See the config_cmd.h file for more information.
+//
+static inline void (*fm_key(u32 cp))(struct fm *)
+{
+  switch (cp) {
+  case 'h':                  return act_cd_up;
+  case KEY_LEFT:             return act_cd_up;
+  case KEY_BACKSPACE:        return act_cd_up;
+
+  case 'j':                  return act_scroll_down;
+  case KEY_DOWN:             return act_scroll_down;
+
+  case 'k':                  return act_scroll_up;
+  case KEY_UP:               return act_scroll_up;
+
+  case 'l':                  return act_open;
+  case KEY_RIGHT:            return act_open;
+  case KEY_ENTER:            return act_open;
+
+  case 'g':                  return act_scroll_top;
+  case 'G':                  return act_scroll_bottom;
+  case KEY_HOME:             return act_scroll_top;
+  case KEY_END:              return act_scroll_bottom;
+
+  case KEY_PAGE_DOWN:        return act_page_down;
+  case KEY_PAGE_UP:          return act_page_up;
+
+  case KEY_TAB:              return act_view_next;
+  case '\`':                 return act_sort_next;
+
+  case '!':                  return act_shell;
+  case '-':                  return act_cd_last;
+  case '.':                  return act_toggle_hidden;
+  case '/':                  return act_search_startswith;
+  case '?':                  return act_search_substring;
+  case ';':                  return cmd_cd;
+  case ':':                  return cmd_exec;
+  case '\'':                 return cmd_exec_sh;
+  case '<':                  return cmd_exec_stdin;
+
+  case '0':                  return act_cd_bookmark_0;
+  case '1':                  return act_cd_bookmark_1;
+  case '2':                  return act_cd_bookmark_2;
+  case '3':                  return act_cd_bookmark_3;
+  case '4':                  return act_cd_bookmark_4;
+  case '5':                  return act_cd_bookmark_5;
+  case '6':                  return act_cd_bookmark_6;
+  case '7':                  return act_cd_bookmark_7;
+  case '8':                  return act_cd_bookmark_8;
+  case '9':                  return act_cd_bookmark_9;
+
+  case 'R':                  return act_refresh;
+  case K(MOD_CTRL, 'l'):     return act_redraw;
+  case 'q':                  return act_quit;
+  case 'Q':                  return act_quit_print_pwd;
+
+  case 'o':                  return cmd_exec_open;
+  case 'O':                  return cmd_exec_open_bg;
+
+  case 'f':                  return cmd_touch;
+  case 'n':                  return cmd_mkdir;
+  case 'r':                  return cmd_rename;
+  case 'x':                  return act_stat;
+  case 'z':                  return act_alt_buffer;
+  case 'p':                  return cmd_chmod;
+  case 'P':                  return cmd_chown;
+  case '~':                  return act_cd_home;
+
+  case 'Y':                  return cmd_copy_clipboard;
+  case K(MOD_CTRL, 'y'):     return act_copy_pwd;
+
+  case 'M':                  return act_cd_mark_directory;
+  case ' ':                  return act_mark_toggle;
+  case K(MOD_CTRL, 'a'):     return act_mark_toggle_all;
+  case 'I':                  return act_mark_invert;
+  case 'C':                  return act_mark_clear;
+  case '[':                  return act_mark_prev;
+  case ']':                  return act_mark_next;
+
+  case 'd':                  return cmd_remove;
+  case 'y':                  return cmd_copy;
+  case 'm':                  return cmd_move;
+  case 's':                  return cmd_link;
+
+#ifdef DFM_KEY_GREEK
+  // Map Greek to Latin keys.
+  // This fixes a pet peeve of mine where I cant use non-insert modes in vim
+  // and other TUIs without changing layout back to English.
+  case $(u8 λ):              return act_open;
+  case $(u8 η):              return act_cd_up;
+  case $(u8 ξ):              return act_scroll_down;
+  case $(u8 κ):              return act_scroll_up;
+  case $(u8 γ):              return act_scroll_top;
+  case $(u8 Γ):              return act_scroll_bottom;
+  case $(u8 Ρ):              return act_refresh;
+  case $(u8 Φ):              return cmd_touch;
+  case $(u8 ν):              return cmd_mkdir;
+  case $(u8 ρ):              return cmd_rename;
+  case $(u8 χ):              return act_stat;
+  case $(u8 ζ):              return act_alt_buffer;
+  case $(u8 π):              return cmd_chmod;
+  case $(u8 Π):              return cmd_chown;
+  case $(u8 Ι):              return act_mark_invert;
+  case $(u8 Ψ):              return act_mark_clear;
+  case $(u8 δ):              return cmd_remove;
+  case $(u8 υ):              return cmd_copy;
+  case $(u8 μ):              return cmd_move;
+  case $(u8 σ):              return cmd_link;
+  case $(u8 ´):              return cmd_cd;
+  case $(u8 ¨):              return cmd_exec;
+#endif // DFM_KEY_GREEK
+
+  //
+  // Debugging.
+  //
+  // case K(MOD_CTRL, 'c'):     return act_crash;
+
+  default:                   return input_disabled;
+  }
+}
+
+//
+// For the full list of line editing functions, search dfm.c for "^input_.*".
+//
+static inline void (*fm_key_input(u32 cp))(struct fm *)
+{
+  switch (cp) {
+  case KEY_HOME:             return input_move_beginning;
+  case KEY_END:              return input_move_end;
+
+  case K(MOD_CTRL, 'a'):     return input_move_beginning;
+  case K(MOD_CTRL, 'e'):     return input_move_end;
+
+  case KEY_LEFT:             return input_move_left;
+  case KEY_RIGHT:            return input_move_right;
+
+  case KEY_ENTER:            return input_submit;
+  case KEY_ESCAPE:           return input_cancel;
+
+  case KEY_DELETE:           return input_delete;
+  case K(MOD_CTRL, 'd'):     return input_delete;
+
+  case K(MOD_CTRL, 'k'):     return input_delete_to_end;
+  case K(MOD_CTRL, 'u'):     return input_delete_to_beginning;
+  case K(MOD_CTRL, 'h'):     return input_backspace;
+  case KEY_BACKSPACE:        return input_backspace;
+
+  case K(MOD_ALT, 'b'):      return input_move_word_left;
+  case K(MOD_ALT, 'f'):      return input_move_word_right;
+
+  case K(MOD_CTRL, 'w'):     return input_delete_word_left;
+  case K(MOD_ALT,  'a'):     return input_delete_word_right;
+
+  case KEY_PASTE:            return input_insert_paste;
+
+  //
+  // Don't send modifier keys, symbolic keys or unprintable characters to
+  // input_insert.
+  //
+  default:
+    return KEY_GET_MOD(cp) || KEY_IS_SYM(cp) || cp < 32
+      ? input_disabled : input_insert;
+  }
+}
+

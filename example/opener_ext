@@ -1,0 +1,27 @@
+#!/bin/sh -feu
+#
+# Example DFM_OPENER script using file extension.
+#
+
+case $1 in
+  *.mkv | *.webm | *.mp4 | *.avi)
+    exec mpv -- "$1"
+  ;;
+
+  *.opus | *.mp3 | *.wav | *.flac | *.ogg)
+    exec mus --no-shuffle -- "$1"
+  ;;
+
+  *.jpg | *.jpeg | *.gif | *.png | *.CR2)
+    exec mpv --pause -- "$1"
+  ;;
+
+  *.svg)
+    exec inkscape "$1"
+  ;; 
+
+  *?*)
+    exec "${EDITOR:-vim}" "$1"
+  ;;
+esac
+

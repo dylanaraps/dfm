@@ -1,0 +1,136 @@
+//
+// DFM - Dylan's File Manager - Configuration file.
+//
+// Commands can be created using the FM_CMD macro which declares a function and
+// fills in a struct fm_cmd.
+//
+// struct fm_cmd {
+//   cut prompt;          // Prompt text.
+//   cut left;            // Text left of cursor.
+//   cut right;           // Text right of cursor.
+//   fm_key_press press;  // Callback on press.
+//   fm_key_enter enter;  // Callback on enter.
+//   u32 config;          // Configuration.
+// };
+//
+// The config field supports the following options:
+//
+// CMD_BG           - Run the command in the background.
+// CMD_CONFLICT     - Prompt on file conflicts.
+// CMD_MUT          - Hint that the command might mutate directory entries.
+// CMD_EXEC         - Skip the interactive prompt and execute the command.
+// CMD_MARK_DIR     - Command must run in the mark directory.
+// CMD_NOT_MARK_DIR - Command must not run in the mark directory.
+// CMD_STDIN        = Feed file under cursor to command via stdin.
+// CMD_FILE_CURSOR  = Ignore marks and add the name under the cursor to input.
+// CMD_EXEC_MARK    = Skip interactive prompt only if marks exist..
+// CMD_EXEC_ROOT    = Skip interactive prompt even if root.
+//
+
+FM_CMD(cmd_exec,
+  .prompt = CUT(":"),
+  .enter  = fm_cmd_run,
+  .config = CMD_MUT,
+)
+
+FM_CMD(cmd_exec_sh,
+  .prompt = CUT(":!"),
+  .enter  = fm_cmd_run_sh,
+  .config = CMD_MUT | CMD_STDIN,
+)
+
+FM_CMD(cmd_exec_stdin,
+  .prompt = CUT(":<"),
+  .enter  = fm_cmd_run,
+  .config = CMD_MUT | CMD_STDIN,
+)
+
+FM_CMD(cmd_exec_open,
+  .prompt = CUT(":"),
+  .right  = CUT(" %m"),
+  .enter  = fm_cmd_run,
+)
+
+FM_CMD(cmd_exec_open_bg,
+  .prompt = CUT(":"),
+  .right  = CUT(" %m &"),
+  .enter  = fm_cmd_run
+)
+
+FM_CMD(cmd_link,
+  .prompt = CUT(":"),
+  .left   = CUT("ln -sf %m %d"),
+  .enter  = fm_cmd_run,
+  .config = CMD_NOT_MARK_DIR | CMD_MUT | CMD_EXEC_MARK | CMD_CONFLICT,
+)
+
+FM_CMD(cmd_remove,
+  .prompt = CUT(":"),
+  .left   = CUT("rm -rf %m"),
+  .enter  = fm_cmd_run,
+  .config = CMD_MARK_DIR | CMD_MUT | CMD_EXEC_MARK,
+)
+
+FM_CMD(cmd_copy,
+  .prompt = CUT(":"),
+  .left   = CUT("cp -Rf %m %d"),
+  .enter  = fm_cmd_run,
+  .config = CMD_NOT_MARK_DIR | CMD_MUT | CMD_EXEC_MARK | CMD_CONFLICT,
+)
+
+FM_CMD(cmd_move,
+  .prompt = CUT(":"),
+  .left   = CUT("echo mv -f %m %d"),
+  .enter  = fm_cmd_run,
+  .config = CMD_NOT_MARK_DIR | CMD_MUT | CMD_EXEC_MARK | CMD_CONFLICT,
+)
+
+FM_CMD(cmd_rename,
+  .prompt = CUT(":"),
+  .left   = CUT("mv -f %f "),
+  .enter  = fm_cmd_run,
+  .config = CMD_FILE_CURSOR | CMD_MUT,
+)
+
+FM_CMD(cmd_chmod,
+  .prompt = CUT(":"),
+  .left   = CUT("chmod"),
+  .right  = CUT(" %m"),
+  .enter  = fm_cmd_run,
+  .config = CMD_MUT,
+)
+
+FM_CMD(cmd_chown,
+  .prompt = CUT(":"),
+  .left   = CUT("chown"),
+  .right  = CUT(" %m"),
+  .enter  = fm_cmd_run,
+  .config = CMD_MUT,
+)
+
+FM_CMD(cmd_copy_clipboard,
+  .prompt = CUT(":cd "),
+  .left   = get_env("DFM_COPYER", DFM_COPYER),
+  .enter  = fm_cmd_run,
+  .config = CMD_EXEC | CMD_STDIN,
+)
+
+FM_CMD(cmd_cd,
+  .prompt = CUT(":cd "),
+  .enter  = fm_cmd_cd,
+)
+
+FM_CMD(cmd_touch,
+  .prompt = CUT(":"),
+  .left   = CUT("touch "),
+  .enter  = fm_cmd_run,
+  .config = CMD_MUT,
+)
+
+FM_CMD(cmd_mkdir,
+  .prompt = CUT(":"),
+  .left   = CUT("mkdir -p "),
+  .enter  = fm_cmd_run,
+  .config = CMD_MUT,
+)
+
