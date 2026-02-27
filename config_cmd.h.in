@@ -1,8 +1,8 @@
 //
 // DFM - Dylan's File Manager - Configuration file.
 //
-// Commands can be created using the FM_CMD macro which declares a function and
-// fills in a struct fm_cmd.
+// Commands can be created using the FM_CMD macro which declares a function
+// that holds a struct fm_cmd and calls fm_cmd().
 //
 // struct fm_cmd {
 //   cut prompt;          // Prompt text.
@@ -25,6 +25,18 @@
 // CMD_FILE_CURSOR  = Ignore marks and add the name under the cursor to input.
 // CMD_EXEC_MARK    = Skip interactive prompt only if marks exist..
 // CMD_EXEC_ROOT    = Skip interactive prompt even if root.
+//
+// If the FM_CMD system is too limiting you can define your own functions and
+// bind them to keys. The same function signature is used in navigation and
+// input modes.
+//
+// static void
+// my_custom_fn(struct fm *p)
+// {
+//   // Go wild.
+// }
+//
+// Refer to dfm.c for more information.
 //
 
 FM_CMD(cmd_exec,

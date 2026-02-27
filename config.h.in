@@ -126,18 +126,7 @@
 #define RL_MAX (1 << 13)
 
 //
-// Reserve room before and after marks for command and extra arguments.
-// Marks are stored as an array of (char *) with the following layout:
-//
-// [DFM_MARK_CMD_PRE...][MARKS...][DFM_MARK_CMD_POST...][NULL]
-//
-// In order to run a command on marks dfm will simply write the caller's argv
-// into the free slots in DFM_MARK_CMD_PRE. Similarly, there is space after the
-// marks (DFM_MARK_CMD_PRE) where the caller can put arguments. Right now this
-// POST location is only used to append a path to some commands.
-//
-// After writing the caller's argv, the marks array is simply passed as-is to
-// exec. In other words, to call `rm -rf`, only two ptrs are copied
+// Room to reserve before and after marks for commands.
 //
 #define DFM_MARK_CMD_PRE 32
 #define DFM_MARK_CMD_POST 16
