@@ -13,6 +13,7 @@
                              Dylan's File Manager
 
 
+Initial Announcement: https://dylan.gr/1772192922
 
 * Tiny (CONFIG_SMALL: ~90KiB, CONFIG_TINY: ~40KiB, CONFIG_STATIC: ~150KiB)
 * Fast (should only be limited by IO)
@@ -36,26 +37,6 @@
 * Watches filesystem for changes
 * CD on exit
 * And more...
-
-
-INTRODUCTION
-________________________________________________________________________________
-
-Inbetween the annual pruning of olive trees I had some free time this month to
-write this little file manager. This is the third file manager I have written
-after fff and shfm.
-
-For my needs this is essentially complete and outside of bug fixes or cool ideas
-proposed by people its development is finished.
-
-I use this everyday and find it immensely useful and I hope you do too useful.
-
-  Dylan
-
-P.S. I haven't tested it outside of x86_64 KISS Linux so I'm sure there will be
-portability issues/oversights... and... I rushed a few features in before
-release. Let me know if anything is broken. I numbered the first release as
-0.99.0 to reflect this. Once things settle down I'll do a 1.0.0.
 
 
 DEPENDENCIES
