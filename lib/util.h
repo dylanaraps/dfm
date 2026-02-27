@@ -311,7 +311,7 @@ tz_offset(void)
 }
 
 static inline usize
-fm_path_resolve(char *s, usize l)
+path_resolve(char *s, usize l)
 {
   char *m = s;
   usize i = 0, w = 0;

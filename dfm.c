@@ -2004,7 +2004,7 @@ fm_path_cd(struct fm *p, const char *d, usize l)
   p->pwd.l = 0;
   str_push(&p->pwd, d, l);
   str_terminate(&p->pwd);
-  usize nl = fm_path_resolve(p->pwd.m, p->pwd.l);
+  usize nl = path_resolve(p->pwd.m, p->pwd.l);
   p->pwd.l = nl;
   int r = fm_path_open(p);
   if (!r) {
@@ -2047,7 +2047,7 @@ fm_path_cd_relative(struct fm *p, const char *d, u8 l)
   if (p->pwd.l > 1) str_push_c(&p->pwd, '/');
   str_push(&p->pwd, d, l);
   str_terminate(&p->pwd);
-  usize nl = fm_path_resolve(p->pwd.m, p->pwd.l);
+  usize nl = path_resolve(p->pwd.m, p->pwd.l);
   p->pwd.l = nl;
   int r = fm_path_open(p);
   if (!r) {
