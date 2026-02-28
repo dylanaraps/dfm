@@ -126,11 +126,16 @@ static inline void (*fm_key(u32 cp))(struct fm *)
   case $(u8 ρ):              return cmd_rename;
   case $(u8 χ):              return act_stat;
   case $(u8 ζ):              return act_alt_buffer;
+  case $(u8 ο):              return cmd_exec_open;
+  case $(u8 Ο):              return cmd_exec_open_bg;
   case $(u8 π):              return cmd_chmod;
   case $(u8 Π):              return cmd_chown;
   case $(u8 Ι):              return act_mark_invert;
   case $(u8 Ψ):              return act_mark_clear;
+  case $(u8 τ):              return cmd_trash;
+  case $(u8 Τ):              return act_cd_trash;
   case $(u8 δ):              return cmd_remove;
+  case $(u8 Υ):              return cmd_copy_clipboard;
   case $(u8 υ):              return cmd_copy;
   case $(u8 μ):              return cmd_move;
   case $(u8 σ):              return cmd_link;
