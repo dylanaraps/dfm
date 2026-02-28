@@ -23,8 +23,8 @@
 # SOFTWARE.
 #
 
-LC_ALL=C
-a=$1 b=${a#?} c=${b#?} d=${c#?}
+export LC_ALL=C
+a=$1; b=${a#?}; c=${b#?}; d=${c#?}
 a=${a%"$b"} b=${b%"$c"} c=${c%"$d"} d=${d%"${1#????}"}
 export $(printf 'a=%d b=%d c=%d d=%d' "'$a" "'$b" "'$c" "'$d")
 printf '0x%08X\n' "$((a < 128 ? a : a < 224 ?
