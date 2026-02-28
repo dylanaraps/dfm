@@ -92,6 +92,7 @@ static inline void (*fm_key(u32 cp))(struct fm *)
   case 'z':                  return act_alt_buffer;
   case 'p':                  return cmd_chmod;
   case 'P':                  return cmd_chown;
+  case 'B':                  return cmd_bulk_rename;
   case '~':                  return act_cd_home;
 
   case 'Y':                  return cmd_copy_clipboard;
