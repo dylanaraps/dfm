@@ -93,6 +93,9 @@ Bonus example:
     -DDFM_NO_COLOR \
     -DDFM_COL_NAV="VT_SGR(34,7)"
 
+NOTE: If you are building for an environment without support for the XTerm
+alternate screen, add -DDFM_CLEAR_EDIT to your configure flags.
+
 
 CONFIGURATION
 ________________________________________________________________________________

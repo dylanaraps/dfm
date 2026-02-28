@@ -63,6 +63,12 @@
 #define DFM_SHOW_HIDDEN 0
 
 //
+// Clear screen on exit.
+// Useful when XTerm alt screen is unavailable.
+//
+// #define DFM_CLEAR_EXIT
+
+//
 // Disable colors.
 // Uncomment to disable all colors.
 //

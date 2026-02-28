@@ -63,8 +63,13 @@
 // XTerm Alternate Screen.
 // https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-The-Alternate-Screen-Buffer
 //
+#ifdef DFM_CLEAR_EXIT
+#define VT_ALT_SCREEN_Y  VT_ED0
+#define VT_ALT_SCREEN_N  VT_ED0
+#else
 #define VT_ALT_SCREEN_Y  VT_ESC "[?1049h"
 #define VT_ALT_SCREEN_N  VT_ESC "[?1049l"
+#endif
 
 //
 // Synchronized Updates.
