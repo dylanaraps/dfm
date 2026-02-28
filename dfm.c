@@ -33,6 +33,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+#include "config.h"
+
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
@@ -49,8 +52,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-
-#include "config.h"
 
 #include "lib/arg.h"
 #include "lib/bitset.h"

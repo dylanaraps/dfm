@@ -162,6 +162,15 @@
 #define DFM_MARGIN 3
 
 //
+// OS specific flags.
+//
+#ifdef __linux__
+#define _GNU_SOURCE
+#define _BSD_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+
+//
 // Configuration overrides from ./configure.
 //
 #include "$CFG_MACRO_GEN"
