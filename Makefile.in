@@ -30,14 +30,16 @@ $CFG_NAME: $CFG_NAME.c $(echo $CFG_MAKE_DEP) $CFG_BUILD $CFG_INPUT $CFG_COMMAND
 	$CC $cc_flags ${CPPFLAGS:-} ${CFLAGS:-} ${LDFLAGS:-} -o $CFG_NAME $CFG_NAME.c
 !!
 case ${CONFIG_SMALL:=${CONFIG_TINY:=0}} in 1)
-	echo "	$STRIP $strip_flags $CFG_NAME"
+  echo "	$STRIP $strip_flags $CFG_NAME"
 esac
+
+while read -r l _; do case $l in [!\#]*)
+  rm=${rm:-}$l\ ;
+esac done < "$CFG_IGNORE"
 !!
 
 clean:
-	$RM -f $(while read -r l _; do case $l in [!\#]*)
-		v=${v:-}$l\ ;
-	esac done < "$CFG_IGNORE"; echo "$v")
+	$RM -f $rm
 
 install: $CFG_NAME
 	$MKDIR -p "$prefix/bin"
