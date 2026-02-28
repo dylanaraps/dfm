@@ -64,7 +64,7 @@ export STRIP="${STRIP:-strip}"
 #
 export cc_flags="-std=$c_version -O2 -pipe"
 export cc_flags="$cc_flags -D_POSIX_C_SOURCE=200809L"
-export cc_flags="$cc_flags -D_BSD_SOURCE -D_XOPEN_SOURCE=500"
+export cc_flags="$cc_flags -D_BSD_SOURCE -D_GNU_SOURCE"
 export cc_flags="$cc_flags -Wall -Wextra -pedantic -Wshadow"
 
 
