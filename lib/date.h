@@ -26,9 +26,6 @@
 // Fast date algorithm, C implementation.
 // Source: https://www.benjoffe.com/fast-date-64
 //
-#include <stddef.h>
-#include <stdint.h>
-
 #include "util.h"
 
 #define C1 505054698555331ull   // floor(2^64 * 4 / 146097)

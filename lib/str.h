@@ -22,8 +22,7 @@
 #ifndef DYLAN_STR_H
 #define DYLAN_STR_H
 
-#include <stdlib.h>
-#include <stdint.h>
+#include <assert.h>
 #include <string.h>
 
 #include "util.h"

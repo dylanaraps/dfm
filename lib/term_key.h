@@ -22,14 +22,9 @@
 #ifndef DYLAN_TERM_KEY_H
 #define DYLAN_TERM_KEY_H
 
-#include <fcntl.h>
-#include <signal.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <termios.h>
+#include <stdbool.h>
 #include <unistd.h>
 
-#include <sys/ioctl.h>
 #include <sys/select.h>
 #include <sys/time.h>
 

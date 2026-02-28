@@ -22,7 +22,6 @@
 #ifndef DYLAN_BITSET_H
 #define DYLAN_BITSET_H
 
-#include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 

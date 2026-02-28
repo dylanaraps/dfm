@@ -22,9 +22,6 @@
 #ifndef DYLAN_VT_H
 #define DYLAN_VT_H
 
-#include <stdio.h>
-#include <unistd.h>
-
 #include "str.h"
 #include "util.h"
 

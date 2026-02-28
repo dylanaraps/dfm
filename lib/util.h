@@ -22,24 +22,19 @@
 #ifndef DYLAN_UTIL_H
 #define DYLAN_UTIL_H
 
-#include <assert.h>
-#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <pwd.h>
+#include <limits.h>
 #include <spawn.h>
-#include <stdalign.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 
-#include <sys/stat.h>
-#include <sys/time.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 
 #define ARR_SIZE(a) ((intptr_t)(sizeof(a) / sizeof(*(a))))

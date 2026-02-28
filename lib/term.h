@@ -22,16 +22,14 @@
 #ifndef DYLAN_TERM_H
 #define DYLAN_TERM_H
 
+#include <assert.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
 
-#include <sys/ioctl.h>
 #include <sys/select.h>
-#include <sys/time.h>
+#include <sys/ioctl.h>
 #include <sys/wait.h>
 
 #include "util.h"
