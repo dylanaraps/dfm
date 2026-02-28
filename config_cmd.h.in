@@ -146,3 +146,11 @@ FM_CMD(cmd_mkdir,
   .config = CMD_MUT,
 )
 
+FM_CMD(cmd_trash,
+  .prompt = CUT(":"),
+  .left   = get_env("DFM_TRASH", DFM_TRASH),
+  .right  = CUT(" %m"),
+  .enter  = fm_cmd_run,
+  .config = CMD_MARK_DIR | CMD_MUT | CMD_EXEC_MARK,
+)
+

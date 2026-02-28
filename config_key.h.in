@@ -79,6 +79,9 @@ static inline void (*fm_key(u32 cp))(struct fm *)
   case 'q':                  return act_quit;
   case 'Q':                  return act_quit_print_pwd;
 
+  case 't':                  return cmd_trash;
+  case 'T':                  return act_cd_trash;
+
   case 'o':                  return cmd_exec_open;
   case 'O':                  return cmd_exec_open_bg;
 

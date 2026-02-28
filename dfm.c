@@ -97,6 +97,8 @@ static const char DFM_HELP[] =
   "DFM_OPENER         program used to open files (overridden by -o)\n"
   "DFM_BOOKMARK_[0-9] bookmark directories\n"
   "DFM_COPYER         program used to copy PWD and file contents.\n"
+  "DFM_TRASH          program used to trash files.\n"
+  "DFM_TRASH_DIR      path to trash directory.\n"
 ;
 
 enum fm_opt {
@@ -2642,6 +2644,14 @@ act_cd_mark_directory(struct fm *p)
 {
   if (!p->vml) return;
   fm_path_cd(p, p->mpwd.m, p->mpwd.l);
+}
+
+static inline void
+act_cd_trash(struct fm *p)
+{
+  cut e = get_env("DFM_TRASH_DIR", DFM_TRASH_DIR);
+  if (e.l) fm_path_cd(p, e.d, e.l);
+  else fm_draw_err(p, S("DFM_TRASH_DIR not set"), 0);
 }
 
 static inline void
