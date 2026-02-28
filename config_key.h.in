@@ -129,6 +129,7 @@ static inline void (*fm_key(u32 cp))(struct fm *)
   case $(u8 ζ):              return act_alt_buffer;
   case $(u8 ο):              return cmd_exec_open;
   case $(u8 Ο):              return cmd_exec_open_bg;
+  case $(u8 Β):              return cmd_bulk_rename;
   case $(u8 π):              return cmd_chmod;
   case $(u8 Π):              return cmd_chown;
   case $(u8 Ι):              return act_mark_invert;
