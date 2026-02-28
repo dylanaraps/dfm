@@ -15,7 +15,7 @@
 
 Initial Announcement: https://dylan.gr/1772192922
 
-* Tiny (CONFIG_SMALL: ~90KiB, CONFIG_TINY: ~40KiB, CONFIG_STATIC: ~150KiB)
+* Tiny (CONFIG_SMALL: ~90KiB, CONFIG_TINY: ~40KiB, static: ~150KiB)
 * Fast (should only be limited by IO)
 * No dynamic memory allocation (~1.5MiB static)
 * Does nothing unless a key is pressed
