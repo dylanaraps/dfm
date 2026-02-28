@@ -2203,8 +2203,10 @@ fm_cmd(struct fm *p, struct fm_cmd *c)
   p->f |= FM_REDRAW_CMD;
   if (p->f & FM_ROOT && !(p->cf & CMD_EXEC_ROOT))
     return;
-  if ((p->cf & CMD_EXEC_MARK && p->vml) || p->cf & CMD_EXEC)
+  if ((p->cf & CMD_EXEC_MARK && p->vml) || p->cf & CMD_EXEC) {
+    rl_join(&p->r);
     fm_cmd_exec(p);
+  }
 }
 
 static inline void
