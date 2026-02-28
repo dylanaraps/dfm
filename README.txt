@@ -160,6 +160,10 @@ environment, default values are derived from the config.h.in file.
 - DFM_OPENER         (Opener script to use when opening files. This could be
                       xdg-open or a custom script (see the examples/ directory))
 
+- DFM_TRASH          (Program to use when trashing files.)
+
+- DFM_TRASH_DIR      (Path to trash directory.)
+
 
 --[CD On Exit]------------------------------------------------------------------
 

@@ -34,6 +34,18 @@
 #define DFM_BOOKMARK_9 ""
 
 //
+// Default trash utility.
+// Can be set at runtime via environment: \$DFM_TRASH
+//
+#define DFM_TRASH "\$DFM_TRASH"
+
+//
+// Default trash directory.
+// Can be set at runtime via environment: \$DFM_TRASH_DIR
+//
+#define DFM_TRASH_DIR ""
+
+//
 // Default sort mode.
 // See: fm_sort_fn()
 //
