@@ -121,11 +121,6 @@ ${mo:-}
 EOF
 
   #
-  # Generate Makefile
-  #
-  "$CFG_DPP_CMD" < "$CFG_MAKE_CONFIG" > "$CFG_MAKE_FILE"
-
-  #
   # Generate .gitignore.
   #
   cat <<EOF > "$CFG_IGNORE"
@@ -137,5 +132,10 @@ $CFG_COMMAND_GEN
 $CFG_INPUT_GEN
 $CFG_MAKE_FILE
 EOF
+
+  #
+  # Generate Makefile
+  #
+  "$CFG_DPP_CMD" < "$CFG_MAKE_CONFIG" > "$CFG_MAKE_FILE"
 esac
 
