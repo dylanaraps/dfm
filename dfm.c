@@ -2333,7 +2333,6 @@ static inline int
 fm_cmd_build_bulk_chunk(struct fm *p, cut s, usize ti, usize tc, u32 f)
 {
   int r = 0;
-  assert(!p->ml);
   usize b = 0;
   while (b < p->dl && p->vml) {
     fm_mark_invalidate(p);
