@@ -33,21 +33,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <assert.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <ftw.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <termios.h>
 #include <time.h>
 #include <unistd.h>
 
-#include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "config.h"
 
@@ -58,6 +59,8 @@
 #include "lib/str.h"
 #include "lib/term.h"
 #include "lib/term_key.h"
+#include "lib/utf8.h"
+#include "lib/util.h"
 #include "lib/vt.h"
 
 #ifdef __linux__
