@@ -139,7 +139,7 @@
 //
 // Make information about the build available.
 //
-#define CC_DATE     "${CFG_DATE:-"$(date '+%Y-%m-%d %H:%M')"}"
+#define CC_DATE     "${CFG_DATE:-$(date '+%Y-%m-%d %H:%M')}"
 #define CC_BRANCH   "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo n/a)"
 #define CC_COMMIT   "$(git rev-parse HEAD 2>/dev/null || echo n/a)"
 #define CFG_VERSION "$CFG_VERSION"
