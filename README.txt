@@ -371,10 +371,6 @@ See the config_key.h.in and config_cmd.h.in files for more information.
 DESIGN CONSIDERATIONS
 ________________________________________________________________________________
 
-* I wanted DFM to do absolutely nothing when idle so SIGWINCH (resize handling)
-  will not automatically perform a size adjustment and redraw until the next
-  keypress.
-
 * I employed many tricks in order to keep memory usage low whilst still allowing
   for fast operations and relatively large directory trees.
 

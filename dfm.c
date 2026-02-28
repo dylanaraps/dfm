@@ -3342,9 +3342,6 @@ static inline void
 fm_update(struct fm *p)
 {
   term_reap();
-  if (unlikely(term_resize(&p->t)))
-    if (fm_term_resize(p) < 0)
-      fm_draw_err(p, S("resize failed"), errno);
   fm_watch_handle(p);
   if (!(p->f & FM_DIRTY)) return;
   p->f &= ~FM_DIRTY;
@@ -3403,7 +3400,12 @@ fm_run(struct fm *p)
   for (; likely(!term_dead(&p->t)); ) {
     fm_update(p);
     fm_draw(p);
-    fm_input(p);
+    int e = term_wait(&p->t);
+    if (e & TERM_WAIT_WCH)
+      if (fm_term_resize(p) < 0)
+        fm_draw_err(p, S("resize failed"), errno);
+    if (e & TERM_WAIT_KEY)
+      fm_input(p);
   }
   fm_term_free(p);
   if (!(p->f & FM_PRINT_PWD)) p->pwd.l = 0;

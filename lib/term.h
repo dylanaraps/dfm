@@ -23,6 +23,7 @@
 #define DYLAN_TERM_H
 
 #include <assert.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <termios.h>
@@ -36,8 +37,9 @@
 #include "vt.h"
 
 enum {
-  TERM_LOADED = 1 << 0,
-  TERM_RESIZE = 1 << 1,
+  TERM_LOADED   = 1 << 0,
+  TERM_WAIT_WCH = 1 << 1,
+  TERM_WAIT_KEY = 1 << 2,
 };
 
 static struct term {
@@ -45,6 +47,7 @@ static struct term {
   int fd;
   int null;
   volatile sig_atomic_t flag;
+  volatile sig_atomic_t resize;
   volatile sig_atomic_t dead;
 } *TERM;
 
@@ -58,12 +61,6 @@ static inline int
 term_dead(const struct term *t)
 {
   return t->dead;
-}
-
-static inline int
-term_resize(const struct term *t)
-{
-  return t->flag & TERM_RESIZE;
 }
 
 static inline void
@@ -105,7 +102,7 @@ static inline void
 term_signal_sigwinch(int s)
 {
   (void) s;
-  if (TERM) TERM->flag |= TERM_RESIZE;
+  if (TERM) TERM->resize = 1;
 }
 
 static inline void
@@ -123,6 +120,7 @@ term_signal_setup(void) {
   sigaction(SIGBUS,  &sa, NULL);
   sigaction(SIGFPE,  &sa, NULL);
   sigaction(SIGILL,  &sa, NULL);
+  sa.sa_flags = 0;
   sa.sa_handler = term_signal_sigwinch;
   sigaction(SIGWINCH, &sa, NULL);
 }
@@ -130,13 +128,15 @@ term_signal_setup(void) {
 static inline int
 term_size_update(struct term *t, u16 *row, u16 *col)
 {
-  struct winsize ws;
-  if (ioctl(t->fd, TIOCGWINSZ, &ws) < 0)
-    return -1;
-  t->flag &= ~TERM_RESIZE;
-  *row = ws.ws_row;
-  *col = ws.ws_col;
-  return 0;
+  for (;;) {
+    t->resize = 0;
+    struct winsize ws;
+    if (ioctl(t->fd, TIOCGWINSZ, &ws) < 0)
+      return -1;
+    *row = ws.ws_row;
+    *col = ws.ws_col;
+    if (!t->resize) return 0;
+  }
 }
 
 static inline int
@@ -190,6 +190,26 @@ static inline void
 term_reap(void)
 {
   for (int st; waitpid(-1, &st, WNOHANG) > 0; );
+}
+
+static inline int
+term_wait(struct term *t)
+{
+  for (;;) {
+    if (t->resize) return TERM_WAIT_WCH;
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(t->fd, &rfds);
+    int r = select(t->fd + 1, &rfds, NULL, NULL, NULL);
+    if (r < 0) {
+      if (errno != EINTR) return 0;
+      if (t->resize) return TERM_WAIT_WCH;
+      continue;
+    }
+    if (FD_ISSET(t->fd, &rfds))
+      return TERM_WAIT_KEY;
+    return 0;
+  }
 }
 
 static inline void
