@@ -75,15 +75,14 @@ case ${DPP_LEVEL:-} in '')
   #
   # '--prefix=/usr' -> 'export prefix=/usr'
   # 'prefix=/usr'   -> 'export prefix=/usr'
-  # '-DWORD'        -> 'export WORD' 'CFLAGS+=-DWORD'
+  # '-DWORD'        -> 'export WORD' '#undef WORD\n#define WORD'
   # '-DWORD=val'    -> 'export WORD' '#undef WORD\n#define WORD val'
   # '-UWORD'        -> 'unset WORD'  'CFLAGS+=-UWORD'
   #
   for a do case $a in
     --help) cat "$0"; exit 0 ;;
-       -D*=*) mo="${mo:-}$a
+       -D*) mo="${mo:-}$a
 " _a=${a#-D}; export "${_a%%=*}="  ;;
-       -D*) cc_flags="$cc_flags $a"; export "${a#-D}="  ;;
        -U*) cc_flags="$cc_flags $a"; unset  "${a#-U}" ;;
      *?=?*) export "${a#--}" ;;
   esac done
