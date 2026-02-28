@@ -121,7 +121,7 @@ FM_CMD(cmd_chown,
 )
 
 FM_CMD(cmd_copy_clipboard,
-  .prompt = CUT(":cd "),
+  .prompt = CUT(":"),
   .left   = get_env("DFM_COPYER", DFM_COPYER),
   .enter  = fm_cmd_run,
   .config = CMD_EXEC | CMD_STDIN,
