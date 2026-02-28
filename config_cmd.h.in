@@ -25,7 +25,31 @@
 // CMD_FILE_CURSOR  = Ignore marks and add the name under the cursor to input.
 // CMD_EXEC_MARK    = Skip interactive prompt only if marks exist..
 // CMD_EXEC_ROOT    = Skip interactive prompt even if root.
-//
+!!
+## Shell cript can be embedded within dfm by using the embed command.
+## The script will be run in $SHELL as the argument following '-c'.
+##
+##  FM_CMD(cmd_bulk_rename,
+##   .prompt = CUT_NULL,
+##   .left   = CUT($(embed script/bulk-rename)),
+##   .enter  = fm_cmd_run_sh,
+##   .config = CMD_MARK_DIR | CMD_MUT | CMD_EXEC,
+## )
+##
+## Another useful example is embedding your opener script.
+##
+## FM_CMD(cmd_opener,
+##   .prompt = CUT_NULL,
+##   .left   = CUT($(embed script/opener_ext)),
+##   .enter  = fm_cmd_run_sh,
+##   .config = CMD_MARK_DIR | CMD_EXEC,
+## )
+##
+## Shell can also be typed directly but its cumbersone to add \\n to the end of
+## each line and escape backslashes and double quotes.
+##
+##  .left   = CUT("echo \\"$@\\"\\n"),
+!!
 // If the FM_CMD system is too limiting you can define your own functions and
 // bind them to keys. The same function signature is used in navigation and
 // input modes.
@@ -152,5 +176,12 @@ FM_CMD(cmd_trash,
   .right  = CUT(" %m"),
   .enter  = fm_cmd_run,
   .config = CMD_MARK_DIR | CMD_MUT | CMD_EXEC_MARK,
+)
+
+FM_CMD(cmd_bulk_rename,
+  .prompt = CUT_NULL,
+  .left   = CUT($(embed script/bulk-rename)),
+  .enter  = fm_cmd_run_sh,
+  .config = CMD_MARK_DIR | CMD_MUT | CMD_EXEC,
 )
 

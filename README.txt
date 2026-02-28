@@ -26,7 +26,7 @@ Initial Announcement: https://dylan.gr/1772192922
 * UTF8 support (minus grapheme clusters and other unruly things)
 * Multiple view modes (name, size, permissions, mtime, ...)
 * Multiple sort modes (name, extension, size, mtime, reverse, ...)
-* No temporary file usage
+* Ranger-style bulk rename
 * Incremental as-you-type search
 * Bookmarks
 * Vim-like keybindings
@@ -161,7 +161,7 @@ environment, default values are derived from the config.h.in file.
                       bind act_cd_bookmark_[0-9] to the keys of your choosing)
 
 - DFM_OPENER         (Opener script to use when opening files. This could be
-                      xdg-open or a custom script (see the examples/ directory))
+                      xdg-open or a custom script (see the script/ directory))
 
 - DFM_TRASH          (Program to use when trashing files)
 
@@ -228,7 +228,7 @@ All is the sum of the other view modes and gives an idea of what is shown:
 
 -rwxr-xr-x    16m    4.0K .git/
 -rwxr-xr-x     2h    4.0K bin/
--rwxr-xr-x     4d    4.0K example/
+-rwxr-xr-x     4d    4.0K script/
 -rwxr-xr-x    32m    4.0K lib/
 -rwxr-xr-x    16h    4.0K platform/
 -rw-r--r--    16m      0B .config_macro.h
