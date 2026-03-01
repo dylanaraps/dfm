@@ -23,43 +23,164 @@
 #define DFM_PLATFORM_APPLE_H
 
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <CoreServices/CoreServices.h>
+#include <pthread.h>
 
 #define ST_ATIM st_atimespec.tv_sec
 #define ST_MTIM st_mtimespec.tv_sec
 #define ST_CTIM st_ctimespec.tv_sec
 
-struct platform {
-  void *_pad;
+struct fs_event {
+  char *name;
+  size_t len;
+  char type;
 };
+
+struct platform {
+  FSEventStreamRef stream;
+  CFRunLoopRef runloop;
+
+  struct fs_event queue[64];
+  int qh, qt;
+
+  pthread_mutex_t lock;
+};
+
+
+static void
+fs_event_callback(ConstFSEventStreamRef streamRef,
+                  void *info,
+                  size_t numEvents,
+                  void *eventPaths,
+                  const FSEventStreamEventFlags flags[],
+                  const FSEventStreamEventId ids[])
+{
+  (void)streamRef;
+  (void)ids;
+
+  struct platform *p = info;
+  char **paths = eventPaths;
+
+  pthread_mutex_lock(&p->lock);
+
+  for (size_t i = 0; i < numEvents; ++i) {
+    char type = 0;
+
+    if (flags[i] & kFSEventStreamEventFlagItemCreated)
+      type = '+';
+    else if (flags[i] & kFSEventStreamEventFlagItemRemoved)
+      type = '-';
+    else if (flags[i] & kFSEventStreamEventFlagItemModified)
+      type = '~';
+
+    if (!type)
+      continue;
+
+    int next = (p->qt + 1) % 64;
+    if (next == p->qh)
+      continue; 
+
+    const char *full = paths[i]; 
+    const char *base = strrchr(full, '/');
+    base = base ? base + 1 : full;
+
+    p->queue[p->qt].len = strlen(base);
+    p->queue[p->qt].name = strdup(base);
+    p->queue[p->qt].type = type;
+
+    p->qt = next;
+  }
+
+  pthread_mutex_unlock(&p->lock);
+}
 
 static inline int
 fs_watch_init(struct platform *p)
 {
-  (void) p;
+  memset(p, 0, sizeof(*p));
+  pthread_mutex_init(&p->lock, NULL);
+  p->runloop = CFRunLoopGetCurrent();
   return 0;
 }
 
 static inline void
-fs_watch(struct platform *p, const char *s)
+fs_watch(struct platform *p, const char *path)
 {
-  (void) p;
-  (void) s;
+  if (p->stream) {
+    FSEventStreamStop(p->stream);
+    FSEventStreamInvalidate(p->stream);
+    FSEventStreamRelease(p->stream);
+  }
+
+  CFStringRef cfpath =
+      CFStringCreateWithCString(NULL, path, kCFStringEncodingUTF8);
+
+  CFArrayRef paths =
+      CFArrayCreate(NULL, (const void **)&cfpath, 1, NULL);
+
+  FSEventStreamContext ctx = {0};
+  ctx.info = p;
+
+  p->stream = FSEventStreamCreate(
+      NULL,
+      fs_event_callback,
+      &ctx,
+      paths,
+      kFSEventStreamEventIdSinceNow,
+      0.05,
+      kFSEventStreamCreateFlagFileEvents
+  );
+
+  FSEventStreamScheduleWithRunLoop(
+      p->stream,
+      p->runloop,
+      kCFRunLoopDefaultMode);
+
+  FSEventStreamStart(p->stream);
+
+  CFRelease(paths);
+  CFRelease(cfpath);
 }
 
 static inline int
 fs_watch_pump(struct platform *p, const char **s, size_t *l)
 {
-  (void) p;
-  (void) s;
-  (void) l;
-  return 0;
+  /* Non-blocking runloop tick */
+  CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
+
+  pthread_mutex_lock(&p->lock);
+
+  if (p->qh == p->qt) {
+    pthread_mutex_unlock(&p->lock);
+    return 0;
+  }
+
+  struct fs_event *e = &p->queue[p->qh];
+  p->qh = (p->qh + 1) % 64;
+
+  *s = e->name;
+  *l = e->len;
+  char type = e->type;
+
+  free(e->name);
+
+  pthread_mutex_unlock(&p->lock);
+
+  return type;
 }
 
 static inline void
 fs_watch_free(struct platform *p)
 {
-  (void) p;
+  if (p->stream) {
+    FSEventStreamStop(p->stream);
+    FSEventStreamInvalidate(p->stream);
+    FSEventStreamRelease(p->stream);
+  }
+
+  pthread_mutex_destroy(&p->lock);
 }
 
-#endif // DFM_PLATFORM_APPLE_H
-
+#endif
