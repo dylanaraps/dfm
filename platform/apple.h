@@ -26,165 +26,167 @@
 #include <string.h>
 #include <stdlib.h>
 #include <limits.h>
-
-#include <CoreServices/CoreServices.h>
-#include <CoreFoundation/CoreFoundation.h>
-#include <pthread.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <sys/event.h>
+#include <sys/stat.h>
 
 #define ST_ATIM st_atimespec.tv_sec
 #define ST_MTIM st_mtimespec.tv_sec
 #define ST_CTIM st_ctimespec.tv_sec
 
-struct fs_event {
+#define MAX_FILES 4096
+
+struct file_ent {
   char name[PATH_MAX];
-  size_t len;
-  char type;
+  time_t mtime;
 };
 
 struct platform {
-  FSEventStreamRef stream;
-  CFRunLoopRef runloop;
+  int kq;
+  int dirfd;
 
-  struct fs_event queue[64];
-  int qh, qt;
+  struct file_ent files[MAX_FILES];
+  size_t file_count;
 
-  pthread_mutex_t lock;
+  char pending_name[PATH_MAX];
+  char pending_type;
 };
 
-static void
-fs_event_callback(ConstFSEventStreamRef streamRef,
-                  void *info,
-                  size_t numEvents,
-                  void *eventPaths,
-                  const FSEventStreamEventFlags flags[],
-                  const FSEventStreamEventId ids[])
+static size_t
+snapshot(int dirfd, struct file_ent *out)
 {
-  (void)streamRef;
-  (void)ids;
+  size_t n = 0;
+  DIR *d = fdopendir(dup(dirfd));
+  if (!d)
+    return 0;
 
-  struct platform *p = info;
-  char **paths = eventPaths;
-
-  pthread_mutex_lock(&p->lock);
-
-  for (size_t i = 0; i < numEvents; ++i) {
-    char type = 0;
-
-    if (flags[i] & kFSEventStreamEventFlagItemCreated)
-      type = '+';
-    else if (flags[i] & kFSEventStreamEventFlagItemRemoved)
-      type = '-';
-    else if (flags[i] & kFSEventStreamEventFlagItemModified)
-      type = '~';
-
-    if (!type)
+  struct dirent *de;
+  while ((de = readdir(d)) && n < MAX_FILES) {
+    if (!strcmp(de->d_name, ".") ||
+        !strcmp(de->d_name, ".."))
       continue;
 
-    int next = (p->qt + 1) % 64;
-    if (next == p->qh)
-      continue; /* queue full */
-
-    const char *full = paths[i];
-    const char *base = strrchr(full, '/');
-    base = base ? base + 1 : full;
-
-    strncpy(p->queue[p->qt].name, base, PATH_MAX - 1);
-    p->queue[p->qt].name[PATH_MAX - 1] = 0;
-    p->queue[p->qt].len = strlen(p->queue[p->qt].name);
-    p->queue[p->qt].type = type;
-
-    p->qt = next;
+    struct stat st;
+    if (!fstatat(dirfd, de->d_name, &st, 0)) {
+      strncpy(out[n].name, de->d_name, PATH_MAX - 1);
+      out[n].name[PATH_MAX - 1] = 0;
+      out[n].mtime = st.ST_MTIM;
+      n++;
+    }
   }
 
-  pthread_mutex_unlock(&p->lock);
+  closedir(d);
+  return n;
 }
-
-/* --------------------------------------------------------- */
-/* Init                                                      */
-/* --------------------------------------------------------- */
 
 static inline int
 fs_watch_init(struct platform *p)
 {
   memset(p, 0, sizeof(*p));
-  pthread_mutex_init(&p->lock, NULL);
-  p->runloop = CFRunLoopGetCurrent();
-  return 0;
+  p->kq = kqueue();
+  return p->kq;
 }
 
 static inline void
 fs_watch(struct platform *p, const char *path)
 {
-  if (p->stream) {
-    FSEventStreamStop(p->stream);
-    FSEventStreamInvalidate(p->stream);
-    FSEventStreamRelease(p->stream);
-  }
+  if (p->dirfd != 0)
+    close(p->dirfd);
 
-  CFStringRef cfpath =
-      CFStringCreateWithCString(NULL, path, kCFStringEncodingUTF8);
+  p->dirfd = open(path, O_RDONLY);
+  if (p->dirfd < 0)
+    return;
 
-  CFArrayRef paths =
-      CFArrayCreate(NULL, (const void **)&cfpath, 1, NULL);
+  struct kevent ev;
+  EV_SET(&ev, p->dirfd, EVFILT_VNODE,
+         EV_ADD | EV_CLEAR,
+         NOTE_WRITE | NOTE_DELETE | NOTE_EXTEND | NOTE_ATTRIB,
+         0, NULL);
 
-  FSEventStreamContext ctx = {0};
-  ctx.info = p;
+  kevent(p->kq, &ev, 1, NULL, 0, NULL);
 
-  p->stream = FSEventStreamCreate(
-      NULL,
-      fs_event_callback,
-      &ctx,
-      paths,
-      kFSEventStreamEventIdSinceNow,
-      0.05,
-      kFSEventStreamCreateFlagFileEvents
-  );
-
-  FSEventStreamScheduleWithRunLoop(
-      p->stream,
-      p->runloop,
-      kCFRunLoopDefaultMode);
-
-  FSEventStreamStart(p->stream);
-
-  CFRelease(paths);
-  CFRelease(cfpath);
+  p->file_count = snapshot(p->dirfd, p->files);
 }
 
 static inline int
 fs_watch_pump(struct platform *p, const char **s, size_t *l)
 {
-  CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
-
-  pthread_mutex_lock(&p->lock);
-
-  if (p->qh == p->qt) {
-    pthread_mutex_unlock(&p->lock);
-    return 0;
+  if (p->pending_type) {
+    *s = p->pending_name;
+    *l = strlen(p->pending_name);
+    int t = p->pending_type;
+    p->pending_type = 0;
+    return t;
   }
 
-  struct fs_event *e = &p->queue[p->qh];
-  p->qh = (p->qh + 1) % 64;
+  struct kevent ev;
+  struct timespec ts = {0, 0};
 
-  *s = e->name;
-  *l = e->len;
-  int type = e->type;
+  if (kevent(p->kq, NULL, 0, &ev, 1, &ts) <= 0)
+    return 0;
 
-  pthread_mutex_unlock(&p->lock);
+  struct file_ent new_files[MAX_FILES];
+  size_t new_count = snapshot(p->dirfd, new_files);
 
-  return type;
+  for (size_t i = 0; i < new_count; i++) {
+    int found = 0;
+    for (size_t j = 0; j < p->file_count; j++)
+      if (!strcmp(new_files[i].name, p->files[j].name))
+        found = 1;
+
+    if (!found) {
+      strcpy(p->pending_name, new_files[i].name);
+      p->pending_type = '+';
+      goto done;
+    }
+  }
+
+  for (size_t i = 0; i < p->file_count; i++) {
+    int found = 0;
+    for (size_t j = 0; j < new_count; j++)
+      if (!strcmp(p->files[i].name, new_files[j].name))
+        found = 1;
+
+    if (!found) {
+      strcpy(p->pending_name, p->files[i].name);
+      p->pending_type = '-';
+      goto done;
+    }
+  }
+
+  for (size_t i = 0; i < new_count; i++)
+    for (size_t j = 0; j < p->file_count; j++)
+      if (!strcmp(new_files[i].name, p->files[j].name) &&
+          new_files[i].mtime != p->files[j].mtime) {
+        strcpy(p->pending_name, new_files[i].name);
+        p->pending_type = '~';
+        goto done;
+      }
+
+done:
+  memcpy(p->files, new_files, sizeof(new_files));
+  p->file_count = new_count;
+
+  if (p->pending_type) {
+    *s = p->pending_name;
+    *l = strlen(p->pending_name);
+    int t = p->pending_type;
+    p->pending_type = 0;
+    return t;
+  }
+
+  return 0;
 }
 
 static inline void
 fs_watch_free(struct platform *p)
 {
-  if (p->stream) {
-    FSEventStreamStop(p->stream);
-    FSEventStreamInvalidate(p->stream);
-    FSEventStreamRelease(p->stream);
-  }
-
-  pthread_mutex_destroy(&p->lock);
+  if (p->dirfd)
+    close(p->dirfd);
+  if (p->kq >= 0)
+    close(p->kq);
 }
 
 #endif
