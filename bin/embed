@@ -36,6 +36,6 @@ s() {
 while IFS= read -r l; do case $l in [!#]*)
   s "$l" \" "__EMBED_$$_QUOTE__" \\ "__EMBED_$$_SLASH__" \
     "__EMBED_$$_QUOTE__" \\\" "__EMBED_$$_SLASH__" \\\\
-  echo "\"$x\\n\""
+  printf '"%s\\n"' "$x"
 esac done < "$1"
 

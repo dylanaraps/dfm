@@ -45,7 +45,7 @@ ________________________________________________________________________________
 Required:
 
 - POSIX shell
-- POSIX cat, cp, date, mkdir, printf, rm, sed
+- POSIX cat, cp, date, mkdir, printf, rm
 - POSIX make
 - POSIX libc
 - C99 compiler

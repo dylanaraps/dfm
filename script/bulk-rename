@@ -32,7 +32,10 @@ e() { rm -f "$f" || :; exit "$1"; }
   exec 3<"$f" &&
   for _ do
     IFS= read -r l <&3
-    set -- "$@" "mv -f -- '$1' '${l:?line mismatch in rename file}'"
+    case ${l:?line mismatch in rename file} in
+      "$1") set -- "$@" "# not modified: '$1'" ;;
+         *) set -- "$@" "mv -f -- '$1' '$l'"
+    esac
     shift
   done && {
   read -r l <&3 && {
