@@ -1,6 +1,6 @@
-#!/bin/sed -f
+#!/bin/sh -euf
 #
-# Convert input to 32bit hex encoded utf8.
+# Escape shell script for embedding in C string literal.
 #
 # Copyright (c) 2026 Dylan Araps
 #
@@ -23,10 +23,19 @@
 # SOFTWARE.
 #
 
-/^[[:space:]]*#/d
-s/\\/\\\\/g
-s/"/\\"/g
-s/$/\\n/
-s/^/"/
-s/$/"/
+s() {
+  x=$l
+  shift 1
+  while :; do case $x-$# in
+    *"$1"*) x=${x%"$1"*}$2${x##*"$1"} ;;
+    *-2) break ;;
+    *) shift 2
+  esac done
+}
+
+while IFS= read -r l; do case $l in [!#]*)
+  s "$l" \" "__EMBED_$$_QUOTE__" \\ "__EMBED_$$_SLASH__" \
+    "__EMBED_$$_QUOTE__" \\\" "__EMBED_$$_SLASH__" \\\\
+  echo "\"$x\\n\""
+esac done < "$1"
 
