@@ -64,8 +64,10 @@
 #include "lib/util.h"
 #include "lib/vt.h"
 
-#ifdef __linux__
+#if defined(__linux__)
 #include "platform/linux.h"
+#elif defined(__APPLE__)
+#include "platform/apple.h"
 #else
 #include "platform/posix.h"
 #endif
@@ -421,7 +423,7 @@ ent_map_stat(u64 *e, const struct stat *s, u8 t)
 e:
   ent_set(e, TYPE, t);
   ent_set(e, PERM, s->st_mode & 07777);
-  ent_set(e, TIME, ent_time_encode(s->st_mtime));
+  ent_set(e, TIME, ent_time_encode(s->ST_MTIM));
 }
 
 static inline void
@@ -726,11 +728,11 @@ fm_file_type(mode_t m)
 }
 
 static inline void
-str_push_time(str *s, s64 tz, const struct timespec *ts)
+str_push_time(str *s, s64 tz, time_t ts)
 {
   s32 y; u32 m; u32 d;
   u32 H; u32 M; u32 S;
-  ut_to_date_time(tz, ts->tv_sec, &y, &m, &d, &H, &M, &S);
+  ut_to_date_time(tz, ts, &y, &m, &d, &H, &M, &S);
   str_push_u32_p(s, y, '0', 2);
   str_push_c(s, '-');
   str_push_u32_p(s, m, '0', 2);
@@ -2779,15 +2781,15 @@ act_stat(struct fm *p)
   STR_PUSH(&p->io, VT_CR VT_LF);
 
   STR_PUSH(&p->io, "Access: ");
-  str_push_time(&p->io, p->tz, &st.st_atim);
+  str_push_time(&p->io, p->tz, st.ST_ATIM);
   STR_PUSH(&p->io, VT_CR VT_LF);
 
   STR_PUSH(&p->io, "Modify: ");
-  str_push_time(&p->io, p->tz, &st.st_mtim);
+  str_push_time(&p->io, p->tz, st.ST_MTIM);
   STR_PUSH(&p->io, VT_CR VT_LF);
 
   STR_PUSH(&p->io, "Change: ");
-  str_push_time(&p->io, p->tz, &st.st_ctim);
+  str_push_time(&p->io, p->tz, st.ST_CTIM);
   STR_PUSH(&p->io, VT_CR VT_LF);
 
   STR_PUSH(&p->io, VT_CR VT_LF "Press any key...");

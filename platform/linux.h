@@ -31,6 +31,10 @@
 
 #include "../lib/util.h"
 
+#define ST_ATIM st_atim.tv_sec
+#define ST_MTIM st_mtim.tv_sec
+#define ST_CTIM st_ctim.tv_sec
+
 struct platform {
   int inotify_wd;
   int inotify_fd;

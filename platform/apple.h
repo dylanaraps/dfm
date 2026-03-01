@@ -19,14 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef DFM_PLATFORM_POSIX_H
-#define DFM_PLATFORM_POSIX_H
+#ifndef DFM_PLATFORM_APPLE_H
+#define DFM_PLATFORM_APPLE_H
 
 #include <stddef.h>
 
-#define ST_ATIM(s) st_atime
-#define ST_MTIM(s) st_mtime
-#define ST_CTIM(s) st_ctime
+#define ST_ATIM st_atimespec.tv_sec
+#define ST_MTIM st_mtimespec.tv_sec
+#define ST_CTIM st_ctimespec.tv_sec
 
 struct platform {
   void *_pad;
@@ -61,5 +61,5 @@ fs_watch_free(struct platform *p)
   (void) p;
 }
 
-#endif // DFM_PLATFORM_POSIX_H
+#endif // DFM_PLATFORM_APPLE_H
 
