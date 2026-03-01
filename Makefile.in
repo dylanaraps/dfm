@@ -19,6 +19,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+!!
+case "$(uname -s)" in
+Darwin)
+  LDFLAGS="$LDFLAGS -framework CoreServices -framework CoreFoundation -lpthread"
+  export LDFLAGS
+  ;;
+esac
+!!
+
+LDFLAGS += -framework CoreServices -framework CoreFoundation -lpthread
 .POSIX:
 
 all: $CFG_NAME

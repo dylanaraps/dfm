@@ -23,9 +23,12 @@
 #define DFM_PLATFORM_APPLE_H
 
 #include <stddef.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
+#include <limits.h>
+
 #include <CoreServices/CoreServices.h>
+#include <CoreFoundation/CoreFoundation.h>
 #include <pthread.h>
 
 #define ST_ATIM st_atimespec.tv_sec
@@ -33,7 +36,7 @@
 #define ST_CTIM st_ctimespec.tv_sec
 
 struct fs_event {
-  char *name;
+  char name[PATH_MAX];
   size_t len;
   char type;
 };
@@ -47,7 +50,6 @@ struct platform {
 
   pthread_mutex_t lock;
 };
-
 
 static void
 fs_event_callback(ConstFSEventStreamRef streamRef,
@@ -80,14 +82,15 @@ fs_event_callback(ConstFSEventStreamRef streamRef,
 
     int next = (p->qt + 1) % 64;
     if (next == p->qh)
-      continue; 
+      continue; /* queue full */
 
-    const char *full = paths[i]; 
+    const char *full = paths[i];
     const char *base = strrchr(full, '/');
     base = base ? base + 1 : full;
 
-    p->queue[p->qt].len = strlen(base);
-    p->queue[p->qt].name = strdup(base);
+    strncpy(p->queue[p->qt].name, base, PATH_MAX - 1);
+    p->queue[p->qt].name[PATH_MAX - 1] = 0;
+    p->queue[p->qt].len = strlen(p->queue[p->qt].name);
     p->queue[p->qt].type = type;
 
     p->qt = next;
@@ -95,6 +98,10 @@ fs_event_callback(ConstFSEventStreamRef streamRef,
 
   pthread_mutex_unlock(&p->lock);
 }
+
+/* --------------------------------------------------------- */
+/* Init                                                      */
+/* --------------------------------------------------------- */
 
 static inline int
 fs_watch_init(struct platform *p)
@@ -147,7 +154,6 @@ fs_watch(struct platform *p, const char *path)
 static inline int
 fs_watch_pump(struct platform *p, const char **s, size_t *l)
 {
-  /* Non-blocking runloop tick */
   CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
 
   pthread_mutex_lock(&p->lock);
@@ -162,9 +168,7 @@ fs_watch_pump(struct platform *p, const char **s, size_t *l)
 
   *s = e->name;
   *l = e->len;
-  char type = e->type;
-
-  free(e->name);
+  int type = e->type;
 
   pthread_mutex_unlock(&p->lock);
 
