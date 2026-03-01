@@ -253,7 +253,7 @@ enum {
 #define ENT_IS_DIR(t) ((t) <= ENT_LNK_DIR)
 
 #define ENT_UTF8  0,  1
-#define ENT_WIDE  1,  1
+#define ENT_FREE  1,  1
 #define ENT_LOC   2, 16
 #define ENT_LEN  18,  8
 #define ENT_SIZE 26, 12
@@ -434,19 +434,18 @@ ent_map_stat_size(u64 *e, const struct stat *s)
 }
 
 static inline usize
-ent_name_len(const char *s, u8 *utf8, u8 *wide)
+ent_name_len(const char *s, u8 *utf8)
 {
   const unsigned char *m = (const unsigned char *)s;
   const unsigned char *p = m;
   *utf8 = 0;
-  *wide = 0;
 #ifdef __GNUC__
   typedef size_t __attribute__((__may_alias__)) W;
   #define ONES ((size_t)-1 / UCHAR_MAX)
   #define HIGHS (ONES * (UCHAR_MAX / 2 + 1))
   for (; (uintptr_t)p % sizeof(W); p++) {
     if (!*p) return (size)(p - m);
-    if (*p & 0x80) { *utf8 = 1; goto check_wide; }
+    if (*p & 0x80) { *utf8 = 1; goto done; }
   }
   for (const W *w = (const void *)p;; w++) {
     W v = *w;
@@ -454,7 +453,7 @@ ent_name_len(const char *s, u8 *utf8, u8 *wide)
       p = (const unsigned char *)w;
       for (;; p++) {
         if (!*p) return (size)(p - m);
-        if (*p & 0x80) { *utf8 = 1; goto check_wide; }
+        if (*p & 0x80) { *utf8 = 1; goto done; }
       }
     }
   }
@@ -462,19 +461,10 @@ ent_name_len(const char *s, u8 *utf8, u8 *wide)
   for (;;) {
     unsigned char b = *p;
     if (!b) return (size)(p - m);
-    if (!(b & 0x80)) { p++; continue; }
-    *utf8 = 1;
-check_wide:;
-    unsigned char b2 = *p;
-    if ((b2 & 0xF8) == 0xF0) { *wide = 1; break; }
-    if ((b2 & 0xF0) == 0xE0) {
-      u32 cp;
-      utf8_decode((void *)p, &cp);
-      if (utf8_width(cp) > 1) { *wide = 1; break; }
-    }
-    usize n = utf8_expected(b2);
-    p += n ? n : 1;
+    if (b & 0x80) { *utf8 = 1; break; }
+    p++;
   }
+done:
   for (p++;;) {
 #ifdef __GNUC__
     for (; (uintptr_t)p % sizeof(W); p++) if (!*p) return (size)(p - m);
@@ -941,7 +931,7 @@ fm_visible_select(struct fm *p, usize k)
 
 // }}}
 
-// UTF8 Truncation Cache {{{
+// UTF8 Truncation {{{
 
 #define DFM_HT_OCC      0x800u
 #define DFM_HT_CACHE    0x40000000u
@@ -952,12 +942,12 @@ fm_visible_select(struct fm *p, usize k)
   ((h) & 0x0003F7FFu) | (((u32)(l) & 0x0FFFu) << 18))
 
 static inline u16
-fm_cache_hash(const struct fm *p, const char *n, usize l)
+fm_cache_hash(const struct fm *p, const char *n, usize l, usize c)
 {
   u32 h = hash_fnv1a32(n, l);
   u32 m = h;
-  m ^= (u32)p->col * 0x9E3779B1u;
-  m ^= (u32)p->dv  * 0x85EBCA6Bu;
+  m ^= (u32)c     * 0x9E3779B1u;
+  m ^= (u32)p->dv * 0x85EBCA6Bu;
   m ^= m >> 16;
   return (u16)m;
 }
@@ -969,10 +959,46 @@ fm_cache_slot(u16 h)
 }
 
 static inline void
-fm_dir_ht_clear_cache(struct fm *p)
+fm_clear_cache(struct fm *p)
 {
   for (usize i = 0; i < DFM_DIR_HT_CAP; i++)
     if (CACHE_IS(p->ht[i])) p->ht[i] = 0;
+}
+
+static inline usize
+fm_cache_trunc_utf8(struct fm *p, const char *n, usize l, usize c, usize *oc)
+{
+  u16 h = fm_cache_hash(p, n, l, c);
+  usize i = fm_cache_slot(h);
+  for (usize j = 0; j < 4; j++) {
+    usize s = (i + j) & (DFM_DIR_HT_CAP - 1);
+    u32 v = p->ht[s];
+    if (CACHE_IS(v) && CACHE_HASH(v) == (h & 0xF7FFu)) {
+      *oc = c;
+      return CACHE_LEN(v) < l ? CACHE_LEN(v) : l;
+    }
+  }
+  usize tl = utf8_trunc(n, l, c, oc);
+  for (usize j = 0; j < 4; j++) {
+    usize s = (i + j) & (DFM_DIR_HT_CAP - 1);
+    u32 v = p->ht[s];
+    if (CACHE_IS(v) || !(v & DFM_HT_OCC)) {
+      p->ht[s] = CACHE_PACK(h, (u16)tl);
+      break;
+    }
+  }
+  return tl;
+}
+
+static inline usize
+fm_cache_trunc(struct fm *p, u64 m, const char *n, usize l, usize c)
+{
+  if (!c) return 0;
+  int u = ent_get(m, UTF8);
+  if (l < c) return l;
+  if (!u) return MIN(l, c);
+  usize oc;
+  return fm_cache_trunc_utf8(p, n, l, c, &oc);
 }
 
 // }}}
@@ -1078,33 +1104,51 @@ fm_draw_flush(struct fm *p)
   STR_PUSH(&p->io, VT_BSU);
 }
 
-static inline usize
-fm_draw_trunc_name(struct fm *p, u64 m, const char *n, usize l, usize c)
+static inline void
+fm_draw_name_tail(str *s, const char *n, usize l, usize dr, int utf8)
 {
-  if (!c) return 0;
-  int w = ent_get(m, WIDE);
-  if (l < c) return l;
-  int u = ent_get(m, UTF8);
-  if (!u) return MIN(l, c);
-  if (!w) return utf8_trunc_narrow(n, l, c);
-  u16 h = fm_cache_hash(p, n, l);
-  usize i = fm_cache_slot(h);
-  for (usize j = 0; j < 4; j++) {
-    usize s = (i + j) & (DFM_DIR_HT_CAP - 1);
-    u32 v = p->ht[s];
-    if (CACHE_IS(v) && CACHE_HASH(v) == (h & 0xF7FFu))
-      return CACHE_LEN(v) < l ? CACHE_LEN(v) : l;
-  }
-  usize tl = utf8_trunc_wide(n, l, c);
-  for (usize j = 0; j < 4; j++) {
-    usize s = (i + j) & (DFM_DIR_HT_CAP - 1);
-    u32 v = p->ht[s];
-    if (CACHE_IS(v) || !(v & DFM_HT_OCC)) {
-      p->ht[s] = CACHE_PACK(h, (u16)tl);
-      break;
+  usize mtc = dr > DFM_TRUNC_WIDTH ? dr - DFM_TRUNC_WIDTH : 0;
+  usize c = MIN(mtc, DFM_TRUNC_LEN);
+  usize tc = 0;
+  usize t = l;
+  if (utf8) {
+    while (t > 0 && tc < c) {
+      usize pr = t - 1;
+      while (pr > 0 && (n[pr] & 0xC0) == 0x80) pr--;
+      u32 cp;
+      int e;
+      utf8_decode_untrusted((void *)(n + pr), &cp, &e);
+      usize w = e ? 1 : utf8_width(cp);
+      if (tc + w > c) break;
+      tc += w;
+      t = e ? t - 1 : pr;
     }
+  } else {
+    tc = MIN(l, c);
+    t = l - tc;
   }
-  return tl;
+  if (dr <= tc + tc + DFM_TRUNC_WIDTH) return;
+  vt_cub(s, tc + DFM_TRUNC_WIDTH + 1);
+  STR_PUSH(s, DFM_TRUNC_STR);
+  str_push_sanitize(s, n + t, l - t);
+}
+
+static inline usize
+fm_draw_name_ellipsis(struct fm *p, u64 m, const char *n, usize l, usize c)
+{
+  if (c < 2) return 0;
+  c--;
+  if (!ent_get(m, UTF8)) {
+    usize d = MIN(l, c);
+    str_push_sanitize(&p->io, n, d);
+    if (l > d) fm_draw_name_tail(&p->io, n, l, d + 1, 0);
+    return d;
+  }
+  usize dr;
+  usize tl = fm_cache_trunc_utf8(p, n, l, c, &dr);
+  str_push_sanitize(&p->io, n, tl);
+  if (tl < l) fm_draw_name_tail(&p->io, n, l, dr, 1);
+  return dr;
 }
 
 static inline void
@@ -1147,8 +1191,7 @@ fm_draw_ent(struct fm *p, usize n)
   if (p->c == n) STR_PUSH(&p->io, DFM_COL_CURSOR);
   usize l = ent_get(e, LEN);
   const char *dn = &p->de[o];
-  usize c = fm_draw_trunc_name(p, e, dn, l, vw < 0 ? 0 : vw);
-  str_push_sanitize(&p->io, dn, c);
+  vw -= fm_draw_name_ellipsis(p, e, dn, l, vw);
 
   switch (t) {
   case ENT_LNK_DIR:
@@ -1160,13 +1203,13 @@ fm_draw_ent(struct fm *p, usize n)
 
   if (ENT_IS_LNK(t)) {
     u8 sl = ent_get(e, SIZE);
-    vw -= c + 4;
-    if (vw <= 0) goto e;
+    vw -= 4;
+    if (vw <= 16) goto e;
     STR_PUSH(&p->io, VT_SGR0 " -> ");
     if (sl) {
       dn = &p->de[o + l + 2];
-      c = fm_draw_trunc_name(p, dn[-1], dn, sl, vw < 0 ? 0 : vw);
-      str_push_sanitize(&p->io, dn, c);
+      vw = fm_cache_trunc(p, dn[-1], dn, sl, vw);
+      str_push_sanitize(&p->io, dn, vw);
     } else
       str_push_c(&p->io, '?');
   }
@@ -1825,8 +1868,7 @@ fm_dir_load_ent(struct fm *p, const char *s)
     return -1;
 
   u8 utf8;
-  u8 wide;
-  u8 l = (u8)ent_name_len(s, &utf8, &wide);
+  u8 l = (u8)ent_name_len(s, &utf8);
 
   if (unlikely(p->del + sizeof(u64) + l + 1 >= p->dec))
     return -1;
@@ -1841,7 +1883,6 @@ fm_dir_load_ent(struct fm *p, const char *s)
   ent_set(&m, LEN, l);
   ent_set(&m, LOC, (u16)p->dl);
   ent_set(&m, UTF8, utf8);
-  ent_set(&m, WIDE, wide);
 
   memcpy(p->de + p->del + sizeof(m), s, l + 1);
   p->del += sizeof(m) + l + 1;
@@ -1869,11 +1910,9 @@ fm_dir_load_ent(struct fm *p, const char *s)
       ssize_t r = readlinkat(p->dfd, s, lm, st.st_size);
       if (likely(r != -1)) {
         u8 lu;
-        u8 lw;
-        ent_name_len(lm, &lu, &lw);
+        ent_name_len(lm, &lu);
         u8 f = 0;
         lnk_set(&f, UTF8, lu);
-        lnk_set(&f, WIDE, lw);
         lm[-1] = f;
         lm[ll] = 0;
         p->del += ll + 2;
@@ -3376,7 +3415,7 @@ fm_draw(struct fm *p)
 {
   if ((p->f & FM_REDRAW) == FM_REDRAW) {
     STR_PUSH(&p->io, VT_ED2);
-    fm_dir_ht_clear_cache(p);
+    fm_clear_cache(p);
   }
   if (p->f & FM_REDRAW_DIR)
     fm_draw_dir(p);

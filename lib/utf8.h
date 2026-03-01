@@ -33,7 +33,7 @@ utf8_expected(u8 b)
   return L[b >> 3];
 }
 
-static inline int
+static inline usize
 utf8_width(u32 c)
 {
   if (c == 0) return 0;
@@ -151,33 +151,20 @@ utf8_cols(const void *s, usize l, usize *lw)
 }
 
 static inline usize
-utf8_trunc_narrow(const char *s, usize l, usize c)
+utf8_trunc(const char *s, usize l, usize c, usize *oc)
 {
   const unsigned char *p = (const unsigned char *)s;
   const unsigned char *e = p + l;
-  for (usize i = 0; p < e && i < c; i++) {
-    unsigned char b = *p++;
-    if (!(b & 0x80)) continue;
-    for (; p < e && ((*p & 0xC0) == 0x80); p++);
-  }
-  return (usize)(p - (const unsigned char *)s);
-}
-
-static inline usize
-utf8_trunc_wide(const char *s, usize l, usize c)
-{
-  const unsigned char *p = (const unsigned char *)s;
-  const unsigned char *e = p + l;
-  for (usize i = 0; p < e && i < c; ) {
+  usize co = 0;
+  while (p < e) {
     u32 cp;
-    const unsigned char *n = (const unsigned char *)utf8_decode((void *)p, &cp);
-    usize a = (usize)(n - p);
-    if (!a) a = 1;
-    int w = utf8_width(cp);
-    if (i + w > c) break;
-    i += w;
-    p += a;
+    const unsigned char *n = utf8_decode((void *)p, &cp);
+    usize w = utf8_width(cp);
+    if (w > c - co) break;
+    co += w;
+    p = n;
   }
+  *oc = co;
   return (usize)(p - (const unsigned char *)s);
 }
 

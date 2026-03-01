@@ -69,6 +69,20 @@
 // #define DFM_CLEAR_EXIT
 
 //
+// Truncation string.
+// Shown when names are too long for the window: blablabla...bla.jpg
+// NOTE: Width must be set to the display width of the string.
+//
+#define DFM_TRUNC_STR   "..."
+#define DFM_TRUNC_WIDTH 3
+
+//
+// Truncation length.
+// Where to cut the truncated string in two and draw DFM_TRUNC_STR.
+//
+#define DFM_TRUNC_LEN 7
+
+//
 // Disable colors.
 // Uncomment to disable all colors.
 //
