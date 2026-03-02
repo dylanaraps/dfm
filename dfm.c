@@ -253,7 +253,7 @@ enum {
 #define ENT_IS_DIR(t) ((t) <= ENT_LNK_DIR)
 
 #define ENT_UTF8  0,  1
-#define ENT_FREE  1,  1
+#define ENT_CTRL  1,  1
 #define ENT_LOC   2, 16
 #define ENT_LEN  18,  8
 #define ENT_SIZE 26, 12
@@ -434,42 +434,87 @@ ent_map_stat_size(u64 *e, const struct stat *s)
 }
 
 static inline usize
-ent_name_len(const char *s, u8 *utf8)
+ent_name_len(const char *s, u8 *utf8, u8 *ctrl)
 {
   const unsigned char *m = (const unsigned char *)s;
   const unsigned char *p = m;
   *utf8 = 0;
+  *ctrl = 0;
 #ifdef __GNUC__
   typedef size_t __attribute__((__may_alias__)) W;
-  #define ONES ((size_t)-1 / UCHAR_MAX)
+  #define ONES  ((size_t)-1 / UCHAR_MAX)
   #define HIGHS (ONES * (UCHAR_MAX / 2 + 1))
+  #define HAS_NUL(v)       (((v) - ONES) & ~(v) & HIGHS)
+  #define HAS_HIGH(v)      ((v) & HIGHS)
+  #define HAS_BYTE_LT(v,n) (((v) - ONES*(n)) & ~(v) & HIGHS)
+  #define HAS_BYTE_EQ(v,c) HAS_BYTE_LT((v) ^ (ONES*(c)), 1)
+  #define HAS_CTRL(v)      (HAS_BYTE_LT(v, 0x20) | HAS_BYTE_EQ(v, 0x7f))
   for (; (uintptr_t)p % sizeof(W); p++) {
-    if (!*p) return (size)(p - m);
-    if (*p & 0x80) { *utf8 = 1; goto done; }
+    unsigned char b = *p;
+    if (!b) return (size)(p - m);
+    if (b & 0x80) { *utf8 = 1; goto done; }
+    if (b < 0x20 || b == 0x7f) {
+      *ctrl = 1;
+      if (*utf8) goto done;
+    }
   }
   for (const W *w = (const void *)p;; w++) {
     W v = *w;
-    if ((v & HIGHS) | ((v - ONES) & ~v & HIGHS)) {
+    if (HAS_HIGH(v) | HAS_NUL(v)) {
       p = (const unsigned char *)w;
       for (;; p++) {
-        if (!*p) return (size)(p - m);
-        if (*p & 0x80) { *utf8 = 1; goto done; }
+        unsigned char b = *p;
+        if (!b) return (size)(p - m);
+        if (b & 0x80) { *utf8 = 1; goto done; }
+        if (b < 0x20 || b == 0x7f) {
+          *ctrl = 1;
+          if (*utf8) goto done;
+        }
       }
     }
+    if (!*ctrl && HAS_CTRL(v)) *ctrl = 1;
   }
 #endif
   for (;;) {
     unsigned char b = *p;
     if (!b) return (size)(p - m);
-    if (b & 0x80) { *utf8 = 1; break; }
+    if (b & 0x80) { *utf8 = 1; goto done; }
+    if (b < 0x20 || b == 0x7f) {
+      *ctrl = 1;
+      if (*utf8) goto done;
+    }
     p++;
   }
 done:
+  if (*ctrl) goto len;
   for (p++;;) {
 #ifdef __GNUC__
-    for (; (uintptr_t)p % sizeof(W); p++) if (!*p) return (size)(p - m);
+    for (; (uintptr_t)p % sizeof(W); p++) {
+      if (!*p) return (size)(p - m);
+      if (*p < 0x20 || *p == 0x7f) { *ctrl = 1; goto len; }
+    }
     for (const W *w = (const void *)p;; w++) {
-      if ((*w - ONES) & ~*w & HIGHS) {
+      W v = *w;
+      if (HAS_NUL(v)) {
+        p = (const unsigned char *)w;
+        for (; *p; p++)
+          if (*p < 0x20 || *p == 0x7f) { *ctrl = 1; goto len; }
+        return (size)(p - m);
+      }
+      if (HAS_CTRL(v)) { *ctrl = 1; goto len; }
+    }
+#endif
+    if (!*p) return (size)(p - m);
+    if (*p < 0x20 || *p == 0x7f) { *ctrl = 1; goto len; }
+    p++;
+  }
+len:
+  for (p++;;) {
+#ifdef __GNUC__
+    for (; (uintptr_t)p % sizeof(W); p++)
+      if (!*p) return (size)(p - m);
+    for (const W *w = (const void *)p;; w++) {
+      if (HAS_NUL(*w)) {
         p = (const unsigned char *)w;
         for (; *p; p++);
         return (size)(p - m);
@@ -1105,7 +1150,7 @@ fm_draw_flush(struct fm *p)
 }
 
 static inline void
-fm_draw_name_tail(str *s, const char *n, usize l, usize dr, int utf8)
+fm_draw_name_tail(str *s, const char *n, usize l, usize dr, int utf8, int ctrl)
 {
   usize mtc = dr > DFM_TRUNC_WIDTH ? dr - DFM_TRUNC_WIDTH : 0;
   usize c = MIN(mtc, DFM_TRUNC_LEN);
@@ -1130,7 +1175,8 @@ fm_draw_name_tail(str *s, const char *n, usize l, usize dr, int utf8)
   if (dr <= tc + tc + DFM_TRUNC_WIDTH) return;
   vt_cub(s, tc + DFM_TRUNC_WIDTH + 1);
   STR_PUSH(s, DFM_TRUNC_STR);
-  str_push_sanitize(s, n + t, l - t);
+  if (ctrl) str_push_sanitize(s, n + t, l - t);
+  else      str_push(s, n + t, l - t);
 }
 
 static inline usize
@@ -1138,16 +1184,19 @@ fm_draw_name_ellipsis(struct fm *p, u64 m, const char *n, usize l, usize c)
 {
   if (c < 2) return 0;
   c--;
+  int ct = ent_get(m, CTRL);
   if (!ent_get(m, UTF8)) {
     usize d = MIN(l, c);
-    str_push_sanitize(&p->io, n, d);
-    if (l > d) fm_draw_name_tail(&p->io, n, l, d + 1, 0);
+    if (ct) str_push_sanitize(&p->io, n, d);
+    else    str_push(&p->io, n, d);
+    if (l > d) fm_draw_name_tail(&p->io, n, l, d + 1, 0, ct);
     return d;
   }
   usize dr;
   usize tl = fm_cache_trunc_utf8(p, n, l, c, &dr);
-  str_push_sanitize(&p->io, n, tl);
-  if (tl < l) fm_draw_name_tail(&p->io, n, l, dr, 1);
+  if (ct) str_push_sanitize(&p->io, n, tl);
+  else    str_push(&p->io, n, tl);
+  if (tl < l) fm_draw_name_tail(&p->io, n, l, dr, 1, ct);
   return dr;
 }
 
@@ -1209,7 +1258,9 @@ fm_draw_ent(struct fm *p, usize n)
     if (sl) {
       dn = &p->de[o + l + 2];
       vw = fm_cache_trunc(p, dn[-1], dn, sl, vw);
-      str_push_sanitize(&p->io, dn, vw);
+      int ct = ent_get(dn[-1], CTRL);
+      if (ct) str_push_sanitize(&p->io, dn, vw);
+      else    str_push(&p->io, dn, vw);
     } else
       str_push_c(&p->io, '?');
   }
@@ -1868,7 +1919,8 @@ fm_dir_load_ent(struct fm *p, const char *s)
     return -1;
 
   u8 utf8;
-  u8 l = (u8)ent_name_len(s, &utf8);
+  u8 ctrl;
+  u8 l = (u8)ent_name_len(s, &utf8, &ctrl);
 
   if (unlikely(p->del + sizeof(u64) + l + 1 >= p->dec))
     return -1;
@@ -1883,6 +1935,7 @@ fm_dir_load_ent(struct fm *p, const char *s)
   ent_set(&m, LEN, l);
   ent_set(&m, LOC, (u16)p->dl);
   ent_set(&m, UTF8, utf8);
+  ent_set(&m, CTRL, ctrl);
 
   memcpy(p->de + p->del + sizeof(m), s, l + 1);
   p->del += sizeof(m) + l + 1;
@@ -1910,9 +1963,11 @@ fm_dir_load_ent(struct fm *p, const char *s)
       ssize_t r = readlinkat(p->dfd, s, lm, st.st_size);
       if (likely(r != -1)) {
         u8 lu;
-        ent_name_len(lm, &lu);
+        u8 ct;
+        ent_name_len(lm, &lu, &ct);
         u8 f = 0;
         lnk_set(&f, UTF8, lu);
+        lnk_set(&f, CTRL, ct);
         lm[-1] = f;
         lm[ll] = 0;
         p->del += ll + 2;
