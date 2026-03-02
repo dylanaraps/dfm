@@ -124,6 +124,8 @@ enum fm_opt {
   FM_PICKER       = 1 << 13,
   FM_PRINT_PWD    = 1 << 14,
   FM_SEARCH       = 1 << 15,
+  FM_PWD_UTF8     = 1 << 16,
+  FM_PWD_CTRL     = 1 << 17,
 };
 
 struct fm;
@@ -166,6 +168,7 @@ struct fm {
   usize vl;
   char vq[DFM_NAME_MAX];
   usize vql;
+  usize vqw;
 
   u64 vm[BITSET_W(DFM_DIR_MAX)];
   usize vml;
@@ -951,6 +954,8 @@ fm_filter_save(struct fm *p, cut cl, cut cr)
   }
   p->vq[i] = 0;
   p->vql = i;
+  // TODO: unhardcode this.
+  p->vqw = p->r.clw + p->r.crw;
 }
 
 static inline void
@@ -958,6 +963,7 @@ fm_filter_clear(struct fm *p)
 {
   fm_filter_apply(p, fm_filter_hidden, CUT_NULL, CUT_NULL);
   p->vql = 0;
+  p->vqw = 0;
   p->f &= ~FM_SEARCH;
 }
 
@@ -1274,6 +1280,48 @@ e:
   STR_PUSH(&p->io, VT_SGR0 VT_EL0 VT_CR);
 }
 
+static inline usize
+fm_draw_pwd(struct fm *p, s32 vw)
+{
+  int ctrl = p->f & FM_PWD_CTRL;
+  int utf8 = p->f & FM_PWD_UTF8;
+  if (p->pwd.l <= (usize)vw) {
+    if (ctrl) str_push_sanitize(&p->io, p->pwd.m, p->pwd.l);
+    else      str_push(&p->io, p->pwd.m, p->pwd.l);
+    return p->pwd.l;
+  }
+  usize i = p->pwd.l;
+  for (; i > 0 && p->pwd.m[i - 1] != '/'; i--);
+  if (i < p->pwd.l && p->pwd.m[i] == '/') i++;
+  usize tl = p->pwd.l - i;
+  const char *tp = p->pwd.m + i;
+  if (tl + DFM_TRUNC_WIDTH + 1 < (usize)vw) {
+    usize av = (usize)vw - tl - DFM_TRUNC_WIDTH - 1;
+    usize bl;
+    if (utf8) {
+      usize oc;
+      bl = fm_cache_trunc_utf8(p, p->pwd.m, i, av, &oc);
+    } else
+      bl = MIN(i, av);
+    if (ctrl) str_push_sanitize(&p->io, p->pwd.m, bl);
+    else      str_push(&p->io, p->pwd.m, bl);
+    STR_PUSH(&p->io, DFM_TRUNC_STR);
+    if (ctrl) str_push_sanitize(&p->io, tp, tl);
+    else      str_push(&p->io, tp, tl);
+    return bl + DFM_TRUNC_WIDTH + tl;
+  } else {
+    usize bl;
+    if (utf8) {
+      usize oc;
+      bl = fm_cache_trunc_utf8(p, tp, tl, (usize)vw, &oc);
+    } else
+      bl = MIN(tl, (usize)vw);
+    if (ctrl) str_push_sanitize(&p->io, tp, bl);
+    else      str_push(&p->io, tp, bl);
+    return bl;
+  }
+}
+
 static inline void
 fm_draw_dir(struct fm *p)
 {
@@ -1347,17 +1395,22 @@ fm_draw_inf(struct fm *p)
     vw -= 2;
   }
 
-  if (vw > 10) {
-    str_push_sanitize(&p->io, p->pwd.m, MIN(p->pwd.l, vw));
-
-    if (vw > 10 && p->f & FM_SEARCH) {
-      STR_PUSH(&p->io, "/" VT_SGR(1));
-      if (p->sf == fm_filter_substr) str_push_c(&p->io, '*');
-      str_push(&p->io, p->vq, p->vql);
-      STR_PUSH(&p->io, "*" VT_SGR0);
-    }
+  if (vw > 5) {
+    usize sw = 0;
+    if (p->f & FM_SEARCH)
+      sw = p->vql + 2 + (p->sf == fm_filter_substr);
+    if (sw && sw >= (usize)vw)
+      vw = 0;
+    else
+      vw -= fm_draw_pwd(p, sw ? vw - sw : vw);
   }
-
+  if (p->f & FM_SEARCH) {
+    STR_PUSH(&p->io, "/" VT_SGR(1));
+    vw -= 2;
+    if (p->sf == fm_filter_substr) { str_push_c(&p->io, '*'); vw--; }
+    str_push(&p->io, p->vq, p->vql);
+    STR_PUSH(&p->io, "*" VT_SGR0);
+  }
   fm_draw_nav_end(p);
 }
 
@@ -2073,6 +2126,16 @@ fm_dir_refresh(struct fm *p)
 
 // Core {{{
 
+static inline void
+fm_path_classify(struct fm *p)
+{
+  u8 ut;
+  u8 ct;
+  ent_name_len(p->pwd.m, &ut, &ct);
+  p->f ^= (-ut ^ p->f) & FM_PWD_UTF8;
+  p->f ^= (-ct ^ p->f) & FM_PWD_CTRL;
+}
+
 static inline int
 fm_path_change(struct fm *p)
 {
@@ -2124,7 +2187,8 @@ fm_path_cd(struct fm *p, const char *d, usize l)
   if (!r) {
     fm_path_load(p);
     fm_draw_err(p, S("cd"), errno);
-  }
+  } else
+    fm_path_classify(p);
   return r && fm_dir_load(p);
 }
 
@@ -2150,6 +2214,7 @@ fm_path_chdir(struct fm *p, const char *d)
   }
   p->pwd.l = strlen(p->pwd.m);
   str_terminate(&p->pwd);
+  fm_path_classify(p);
   return 1;
 }
 
@@ -2167,7 +2232,8 @@ fm_path_cd_relative(struct fm *p, const char *d, u8 l)
   if (!r) {
     fm_path_load(p);
     fm_draw_err(p, S("cd"), errno);
-  }
+  } else
+    fm_path_classify(p);
   return r && fm_dir_load(p);
 }
 
@@ -2188,7 +2254,8 @@ fm_path_cd_up(struct fm *p)
     p->pwd.m[n] = s;
     p->pwd.l = l;
     fm_draw_err(p, S("cd"), errno);
-  }
+  } else
+    fm_path_classify(p);
   return r && fm_dir_load(p) ? (cut){ p->ppwd.m + i, l - i } : CUT_NULL;
 }
 
