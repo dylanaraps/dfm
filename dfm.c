@@ -1323,6 +1323,30 @@ fm_draw_pwd(struct fm *p, s32 vw)
 }
 
 static inline void
+fm_draw_search_query(struct fm *p, usize qw)
+{
+  str_push_c(&p->io, '/');
+  STR_PUSH(&p->io, VT_SGR(1));
+  if (p->sf == fm_filter_substr) str_push_c(&p->io, '*');
+  usize qu = MIN(qw, p->vqw);
+  usize of = p->vql;
+  for (usize acc = 0; of > 0; ) {
+    usize pr = of - 1;
+    while (pr > 0 && (p->vq[pr] & 0xC0) == 0x80) pr--;
+    u32 cp;
+    utf8_decode((void *)(p->vq + pr), &cp);
+    usize w = utf8_width(cp);
+    if (acc + w > qu) break;
+    acc += w;
+    of = pr;
+  }
+  if (of < p->vql) {
+    str_push(&p->io, p->vq + of, p->vql - of);
+    STR_PUSH(&p->io, "*" VT_SGR0);
+  }
+}
+
+static inline void
 fm_draw_dir(struct fm *p)
 {
   usize s = p->y >= p->o ? p->y - p->o : 0;
@@ -1396,20 +1420,15 @@ fm_draw_inf(struct fm *p)
   }
 
   if (vw > 5) {
-    usize sw = 0;
-    if (p->f & FM_SEARCH)
-      sw = p->vql + 2 + (p->sf == fm_filter_substr);
-    if (sw && sw >= (usize)vw)
-      vw = 0;
-    else
-      vw -= fm_draw_pwd(p, sw ? vw - sw : vw);
-  }
-  if (p->f & FM_SEARCH) {
-    STR_PUSH(&p->io, "/" VT_SGR(1));
-    vw -= 2;
-    if (p->sf == fm_filter_substr) { str_push_c(&p->io, '*'); vw--; }
-    str_push(&p->io, p->vq, p->vql);
-    STR_PUSH(&p->io, "*" VT_SGR0);
+    if (p->f & FM_SEARCH) {
+      s32 qw = vw - 3 + (p->sf == fm_filter_substr);
+      if (qw < 0) qw = 0;
+      usize qu = MIN((usize)qw, p->vqw);
+      usize pa = (usize)qw - qu;
+      if (p->vqw <= (usize)qw) fm_draw_pwd(p, pa);
+      fm_draw_search_query(p, (usize)qw);
+    } else
+      vw -= fm_draw_pwd(p, vw);
   }
   fm_draw_nav_end(p);
 }
