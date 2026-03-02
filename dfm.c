@@ -1285,7 +1285,7 @@ fm_draw_pwd(struct fm *p, s32 vw)
 {
   int ctrl = p->f & FM_PWD_CTRL;
   int utf8 = p->f & FM_PWD_UTF8;
-  if (p->pwd.l <= (usize)vw) {
+  if (p->pwd.l < (usize)vw) {
     if (ctrl) str_push_sanitize(&p->io, p->pwd.m, p->pwd.l);
     else      str_push(&p->io, p->pwd.m, p->pwd.l);
     return p->pwd.l;
@@ -1296,7 +1296,7 @@ fm_draw_pwd(struct fm *p, s32 vw)
   usize tl = p->pwd.l - i;
   const char *tp = p->pwd.m + i;
   if (tl + DFM_TRUNC_WIDTH + 1 < (usize)vw) {
-    usize av = (usize)vw - tl - DFM_TRUNC_WIDTH - 1;
+    usize av = (usize)vw - tl - DFM_TRUNC_WIDTH - 2;
     usize bl;
     if (utf8) {
       usize oc;
@@ -1305,7 +1305,7 @@ fm_draw_pwd(struct fm *p, s32 vw)
       bl = MIN(i, av);
     if (ctrl) str_push_sanitize(&p->io, p->pwd.m, bl);
     else      str_push(&p->io, p->pwd.m, bl);
-    STR_PUSH(&p->io, DFM_TRUNC_STR);
+    STR_PUSH(&p->io, DFM_TRUNC_STR "/");
     if (ctrl) str_push_sanitize(&p->io, tp, tl);
     else      str_push(&p->io, tp, tl);
     return bl + DFM_TRUNC_WIDTH + tl;
