@@ -195,7 +195,7 @@ at the actions each key is bound to.
 
 The statusline is as follows:
 
- 1/1 [RnHE] [1 marked] ~0B /path/to/current/directory/<query>
+ 1/1 [RnHE] [1+] ~0B /path/to/current/directory/<query>
 
  1/1        - The entry number under the cursor and the total visible entries.
 
@@ -211,7 +211,7 @@ The statusline is as follows:
                   check the alternate buffer (bound to 'z' by default) to see
                   the error messages left by the command failure.
 
- [1 marked] - Number of marked files, hidden when 0.
+ [1+]       - Number of marked files, hidden when 0.
 
  ~0B        - Approximate size of directory (shallow, excludes sub-directories).
 

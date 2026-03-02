@@ -1326,7 +1326,7 @@ fm_draw_inf(struct fm *p)
   if (p->vml) {
     STR_PUSH(&p->io, DFM_COL_NAV_MARK " ");
     str_push_u32(&p->io, p->vml);
-    STR_PUSH(&p->io, " marked " VT_SGR0);
+    STR_PUSH(&p->io, "+ " VT_SGR0);
     str_push(&p->io, c.d, c.l);
     str_push_c(&p->io, ' ');
   }
