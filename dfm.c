@@ -66,8 +66,9 @@
 
 #if defined(__linux__)
 #include "platform/linux.h"
-#elif defined(__APPLE__)
-#include "platform/apple.h"
+#elif defined(__APPLE__)   || defined(__FreeBSD__) || defined(__NetBSD__) ||\
+      defined(__OpenBSD__) || defined(__DragonFly__)
+#include "platform/bsd.h"
 #else
 #include "platform/posix.h"
 #endif

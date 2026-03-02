@@ -19,47 +19,78 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef DFM_PLATFORM_APPLE_H
-#define DFM_PLATFORM_APPLE_H
+#ifndef DFM_PLATFORM_BSD_H
+#define DFM_PLATFORM_BSD_H
 
 #include <stddef.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/event.h>
+#include <sys/time.h>
+#include <sys/stat.h>
+
+#include "../lib/util.h"
 
 #define ST_ATIM st_atimespec.tv_sec
 #define ST_MTIM st_mtimespec.tv_sec
 #define ST_CTIM st_ctimespec.tv_sec
 
 struct platform {
-  void *_pad;
+  int kq;
+  int dfd;
+  struct kevent ev;
 };
 
 static inline int
 fs_watch_init(struct platform *p)
 {
-  (void) p;
-  return 0;
+  p->dfd = -1;
+  p->kq = kqueue();
+  return p->kq;
 }
 
 static inline void
-fs_watch(struct platform *p, const char *s)
+fs_watch(struct platform *p, const char *path)
 {
-  (void) p;
-  (void) s;
+  if (p->dfd != -1) {
+    close(p->dfd);
+    p->dfd = -1;
+  }
+  p->dfd = open(path, O_EVTONLY);
+  if (p->dfd == -1) return;
+  EV_SET(&p->ev, p->dfd,
+    EVFILT_VNODE, EV_ADD|EV_CLEAR,
+    NOTE_WRITE|NOTE_DELETE|NOTE_RENAME|NOTE_ATTRIB, 0, NULL);
+  kevent(p->kq, &p->ev, 1, NULL, 0, NULL);
 }
 
 static inline int
 fs_watch_pump(struct platform *p, const char **s, size_t *l)
 {
-  (void) p;
-  (void) s;
-  (void) l;
+  *s = NULL;
+  *l = 0;
+  if (p->kq == -1 || p->dfd == -1)
+    return 0;
+  struct kevent o;
+  struct timespec ts = {0, 0};
+  int n = kevent(p->kq, NULL, 0, &o, 1, &ts);
+  if (n <= 0) return 0;
+  if (o.flags & EV_ERROR)     return '!';
+  if (o.fflags & NOTE_DELETE) return '-';
+  if (o.fflags & NOTE_RENAME) return '~';
+  if (o.fflags & NOTE_ATTRIB) return '~';
+  if (o.fflags & NOTE_WRITE)  return '+';
   return 0;
 }
 
 static inline void
 fs_watch_free(struct platform *p)
 {
-  (void) p;
+  if (p->dfd != -1) close(p->dfd);
+  if (p->kq != -1)  close(p->kq);
 }
 
-#endif // DFM_PLATFORM_APPLE_H
+#define FS_WATCH 1
 
+#endif // DFM_PLATFORM_BSD_H
