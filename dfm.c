@@ -1285,42 +1285,55 @@ fm_draw_pwd(struct fm *p, s32 vw)
 {
   int ctrl = p->f & FM_PWD_CTRL;
   int utf8 = p->f & FM_PWD_UTF8;
-  if (p->pwd.l < (usize)vw) {
-    if (ctrl) str_push_sanitize(&p->io, p->pwd.m, p->pwd.l);
-    else      str_push(&p->io, p->pwd.m, p->pwd.l);
-    return p->pwd.l;
+  if (vw <= 0) return 0;
+  if (!utf8) {
+    if (p->pwd.l < (usize)vw) {
+      if (ctrl) str_push_sanitize(&p->io, p->pwd.m, p->pwd.l);
+      else      str_push(&p->io, p->pwd.m, p->pwd.l);
+      return p->pwd.l;
+    }
+  } else {
+    usize fc;
+    usize fb = fm_cache_trunc_utf8(p, p->pwd.m, p->pwd.l, (usize)vw, &fc);
+    if (fb == p->pwd.l) {
+      if (ctrl) str_push_sanitize(&p->io, p->pwd.m, p->pwd.l);
+      else      str_push(&p->io, p->pwd.m, p->pwd.l);
+      return fc;
+    }
   }
   usize i = p->pwd.l;
   for (; i > 0 && p->pwd.m[i - 1] != '/'; i--);
   if (i < p->pwd.l && p->pwd.m[i] == '/') i++;
   usize tl = p->pwd.l - i;
-  const char *tp = p->pwd.m + i;
-  usize tw, tb;
-  if (utf8) {
-    tb = fm_cache_trunc_utf8(p, tp, tl, (usize)vw, &tw);
-  } else {
+  const char *tail = p->pwd.m + i;
+  usize tc = 0;
+  usize tb = 0;
+  if (utf8)
+    tb = fm_cache_trunc_utf8(p, tail, tl, (usize)vw, &tc);
+  else {
     tb = MIN(tl, (usize)vw);
-    tw = tb;
+    tc = tb;
   }
-  if (tw + DFM_TRUNC_WIDTH + 1 < (usize)vw) {
-    usize av = (usize)vw - tw - DFM_TRUNC_WIDTH - 2;
-    usize bl;
-    if (utf8) {
-      usize oc;
-      bl = fm_cache_trunc_utf8(p, p->pwd.m, i, av, &oc);
-    } else
-      bl = MIN(i, av);
-    if (ctrl) str_push_sanitize(&p->io, p->pwd.m, bl);
-    else      str_push(&p->io, p->pwd.m, bl);
+  if (tc + DFM_TRUNC_WIDTH + 1 < (usize)vw) {
+    usize ac = (usize)vw - tc - DFM_TRUNC_WIDTH - 1;
+    usize hc = 0;
+    usize hb = 0;
+    if (utf8)
+      hb = fm_cache_trunc_utf8(p, p->pwd.m, i, ac, &hc);
+    else {
+      hb = MIN(i, ac);
+      hc = hb;
+    }
+    if (ctrl) str_push_sanitize(&p->io, p->pwd.m, hb);
+    else      str_push(&p->io, p->pwd.m, hb);
     STR_PUSH(&p->io, DFM_TRUNC_STR "/");
-    if (ctrl) str_push_sanitize(&p->io, tp, tl);
-    else      str_push(&p->io, tp, tl);
-    return bl + DFM_TRUNC_WIDTH + tw;
-  } else {
-    if (ctrl) str_push_sanitize(&p->io, tp, tb);
-    else      str_push(&p->io, tp, tb);
-    return tw;
+    if (ctrl) str_push_sanitize(&p->io, tail, tl);
+    else      str_push(&p->io, tail, tl);
+    return hc + DFM_TRUNC_WIDTH + tc;
   }
+  if (ctrl) str_push_sanitize(&p->io, tail, tb);
+  else      str_push(&p->io, tail, tb);
+  return tc;
 }
 
 static inline void
@@ -1429,7 +1442,7 @@ fm_draw_inf(struct fm *p)
       if (p->vqw <= (usize)qw) fm_draw_pwd(p, pa);
       fm_draw_search_query(p, (usize)qw);
     } else
-      vw -= fm_draw_pwd(p, vw);
+      vw -= fm_draw_pwd(p, vw - 1);
   }
   fm_draw_nav_end(p);
 }
