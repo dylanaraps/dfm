@@ -113,7 +113,7 @@ str_memset(str *s, int c, usize n)
   s->l += n;
 }
 
-static inline void
+static inline usize
 str_push_u32_b(str *s, u32 v, u32 b, int c, usize l)
 {
   static const char d[] = "0123456789abcdef";
@@ -125,20 +125,22 @@ str_push_u32_b(str *s, u32 v, u32 b, int c, usize l)
     v /= b;
   } while (v);
   usize n = (usize)(&o[sizeof(o)] - p);
-  if (n < l) str_memset(s, c, l - n);
+  usize g = (n < l) ? l - n : 0;
+  if (g) str_memset(s, c, g);
   str_push(s, p, n);
+  return g + n;
 }
 
-static inline void
+static inline usize
 str_push_u32_p(str *s, u32 v, int c, usize l)
 {
-  str_push_u32_b(s, v, 10, c, l);
+  return str_push_u32_b(s, v, 10, c, l);
 }
 
-static inline void
+static inline usize
 str_push_u32(str *s, u32 v)
 {
-  str_push_u32_p(s, v, 0, 0);
+  return str_push_u32_p(s, v, 0, 0);
 }
 
 static inline void

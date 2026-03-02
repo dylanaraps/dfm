@@ -352,14 +352,16 @@ ent_size_sub(u32 e, u64 s)
   return ent_size_encode(c - s);
 }
 
-static inline void
+static inline usize
 ent_size_decode(str *s, u32 v, usize p, u8 t)
 {
+  usize w = 0;
   if (ENT_IS_LNK(t) || !v) {
-    str_push_u32_p(s, v, ' ', p ? p - 1 : 0);
+    w += str_push_u32_p(s, v, ' ', p ? p - 1 : 0);
     str_push_c(s, 'B');
-    if (p) str_push_c(s, ' ');
-    return;
+    w++;
+    if (p) { str_push_c(s, ' '); w++; }
+    return w;
   }
   u32 e = v >> 6;
   u32 f = v & 63;
@@ -372,13 +374,16 @@ ent_size_decode(str *s, u32 v, usize p, u8 t)
   int sd = (u && ip < 10);
   usize su = 1 + (sd ? 2 : 0);
   usize pa = p > su ? p - su : 0;
-  str_push_u32_p(s, (u32)ip, ' ', pa);
+  w += str_push_u32_p(s, (u32)ip, ' ', pa);
   if (sd) {
     str_push_c(s, '.');
     str_push_u32(s, d);
+    w += 2;
   }
   str_push_c(s, "BKMGTPE"[u]);
-  if (p) str_push_c(s, ' ');
+  w++;
+  if (p) { str_push_c(s, ' '); w++; }
+  return w;
 }
 
 static inline u32
@@ -1308,42 +1313,49 @@ fm_draw_inf(struct fm *p)
 {
   cut c = p->f & (FM_TRUNC|FM_ERROR) ? CUT(DFM_COL_NAV_ERR) :
     p->f & FM_ROOT ? CUT(DFM_COL_NAV_ROOT) : CUT(DFM_COL_NAV);
+  s32 vw = p->col;
   fm_draw_nav_begin(p, c);
   str_push_c(&p->io, ' ');
-  str_push_u32(&p->io, p->y + !!p->vl);
+  vw -= str_push_u32(&p->io, p->y + !!p->vl);
   str_push_c(&p->io, '/');
-  str_push_u32(&p->io, p->vl);
-  STR_PUSH(&p->io, " ");
+  vw -= str_push_u32(&p->io, p->vl);
+  str_push_c(&p->io, ' ');
+  vw -= 3;
 
   str_push_c(&p->io, '[');
-  if (unlikely(p->f & FM_ROOT))   str_push_c(&p->io, 'R');
+  vw -= 3;
+  if (unlikely(p->f & FM_ROOT))   { str_push_c(&p->io, 'R'); vw--; }
   if (likely(!(p->f & FM_TRUNC))) str_push_c(&p->io, p->ds);
   else str_push_c(&p->io, 'T');
-  if (unlikely(p->f & FM_ERROR))  str_push_c(&p->io, 'E');
-  if (unlikely(p->f & FM_HIDDEN)) str_push_c(&p->io, 'H');
+  if (unlikely(p->f & FM_ERROR))  { str_push_c(&p->io, 'E'); vw--; }
+  if (unlikely(p->f & FM_HIDDEN)) { str_push_c(&p->io, 'H'); vw--; }
   STR_PUSH(&p->io, "] ");
 
-  if (p->vml) {
+  if (vw > 10 && p->vml) {
     STR_PUSH(&p->io, DFM_COL_NAV_MARK " ");
-    str_push_u32(&p->io, p->vml);
+    vw -= str_push_u32(&p->io, p->vml);
     STR_PUSH(&p->io, "+ " VT_SGR0);
     str_push(&p->io, c.d, c.l);
     str_push_c(&p->io, ' ');
+    vw -= 4;
   }
 
-  if (likely(!(p->f & FM_TRUNC))) {
+  if (vw > 20 && likely(!(p->f & FM_TRUNC))) {
     STR_PUSH(&p->io, "~");
-    ent_size_decode(&p->io, p->du, 0, ENT_TYPE_MAX);
+    vw -= ent_size_decode(&p->io, p->du, 0, ENT_TYPE_MAX);
     STR_PUSH(&p->io, " ");
+    vw -= 2;
   }
 
-  str_push_sanitize(&p->io, p->pwd.m, MIN(p->pwd.l, p->col));
+  if (vw > 10) {
+    str_push_sanitize(&p->io, p->pwd.m, MIN(p->pwd.l, vw));
 
-  if (p->f & FM_SEARCH) {
-    STR_PUSH(&p->io, "/" VT_SGR(1));
-    if (p->sf == fm_filter_substr) str_push_c(&p->io, '*');
-    str_push(&p->io, p->vq, p->vql);
-    STR_PUSH(&p->io, "*" VT_SGR0);
+    if (vw > 10 && p->f & FM_SEARCH) {
+      STR_PUSH(&p->io, "/" VT_SGR(1));
+      if (p->sf == fm_filter_substr) str_push_c(&p->io, '*');
+      str_push(&p->io, p->vq, p->vql);
+      STR_PUSH(&p->io, "*" VT_SGR0);
+    }
   }
 
   fm_draw_nav_end(p);
