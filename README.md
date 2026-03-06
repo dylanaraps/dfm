@@ -1,5 +1,7 @@
 # Dylan's File Manager
 
+<a href="https://asciinema.org/a/qvNlrFrGB3xKZXb6GkremjZNp" target="_blank"><img src="https://asciinema.org/a/qvNlrFrGB3xKZXb6GkremjZNp.svg" alt="img" height="210px" align="right"/></a>
+
 Initial Announcement: https://dylan.gr/1772192922
 
 * Tiny (`CONFIG_SMALL`: ~90KiB, `CONFIG_TINY`: ~40KiB, `CONFIG_TINY`+ `-static`: ~150KiB)
@@ -11,7 +13,7 @@ Initial Announcement: https://dylan.gr/1772192922
 * Manually implemented interactive line editor
 * Efficient low-bandwidth partial rendering
 * UTF8 support (minus grapheme clusters and other unruly things)
-* Multiple view modes (name, size, permissions, mtime, ...)
+* Multiple view modes (name, size, permissions, mtime, ...) <img src="https://private-user-images.githubusercontent.com/6799467/559461614-9138e9c5-804c-4337-8ede-a69be71e560d.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzI4MjIzNzcsIm5iZiI6MTc3MjgyMjA3NywicGF0aCI6Ii82Nzk5NDY3LzU1OTQ2MTYxNC05MTM4ZTljNS04MDRjLTQzMzctOGVkZS1hNjliZTcxZTU2MGQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI2MDMwNiUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNjAzMDZUMTgzNDM3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MmQwM2Y1N2EzOTcwMGY5MjE1YWQxOGYxNmQyZTM5Y2YyMmZkNjI3MDM4ODMxNGYxNDc5MmRlYjFmYTVhYzk2ZiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.n3BgCL4x-pPo-wFo8XO9otGSjOyCPae2-mZ2slZxn3g" alt="screenshot" height="213px" align="right"/>
 * Multiple sort modes (name, extension, size, mtime, reverse, ...)
 * Ranger-style bulk rename
 * Incremental as-you-type search
