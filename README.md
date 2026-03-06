@@ -1,7 +1,4 @@
-2026/02                                                                   0.99.0
-
-
-
+```
                  oooooooooo.   oooooooooooo ooo        ooooo
                  `888'   `Y8b  `888'     `8 `88.       .888'
                   888      888  888          888b     d'888
@@ -9,13 +6,13 @@
                   888      888  888    "     8  `888'   888
                   888     d88'  888          8    Y     888
                  o888bood8P'   o888o        o8o        o888o
+```
 
-                             Dylan's File Manager
-
+# Dylan's File Manager
 
 Initial Announcement: https://dylan.gr/1772192922
 
-* Tiny (CONFIG_SMALL: ~90KiB, CONFIG_TINY: ~40KiB, static: ~150KiB)
+* Tiny (`CONFIG_SMALL`: ~90KiB, `CONFIG_TINY`: ~40KiB, static: ~150KiB)
 * Fast (should only be limited by IO)
 * No dynamic memory allocation (~1.5MiB static)
 * Does nothing unless a key is pressed
@@ -39,8 +36,7 @@ Initial Announcement: https://dylan.gr/1772192922
 * And more...
 
 
-DEPENDENCIES
-________________________________________________________________________________
+## DEPENDENCIES
 
 Required:
 
@@ -52,75 +48,82 @@ Required:
 
 Optional:
 
-- strip (for CONFIG_SMALL and CONFIG_TINY)
-- clang (for CONFIG_TINY)
+- strip (for `CONFIG_SMALL` and `CONFIG_TINY`)
+- clang (for `CONFIG_TINY`)
 
 
-BUILDING
-________________________________________________________________________________
+## BUILDING
 
+```
 $ ./configure --prefix=/usr
 $ make
 $ make DESTDIR="" install
+```
 
 The configure script takes three forms of arguments.
 
+```
 1) Long-opts:           --prefix=/usr --help
 2) Variables:           CC=/bin/cc CFLAGS="-O3" CONFIG_TINY=1 LDFLAGS=" "
 3) C macro definitions: -DMACRO -DMACRO=VALUE -UMACRO
+```
 
 There are three different build configurations.
 
+```
 1) Default:      -O2
 2) CONFIG_SMALL: -Os + aggressive compiler flags
 3) CONFIG_TINY:  -Oz + CONFIG_SMALL + (you must set CC to clang)
+```
 
-To produce a static binary, pass -static via CFLAGS.
-To enable LTO, pass -flto via CFLAGS.
+To produce a static binary, pass `-static` via `CFLAGS`.
+To enable LTO, pass `-flto` via `CFLAGS`.
 
-Everything contained within ./configure, Makefile.in, config.h.in,
-config_cmd.h.in and config_key.h.in can be configured on the command-line via
-./configure. See './configure --help' and also refer to these files for more
-information.
+Everything contained within `./configure`, `Makefile.in`, `config.h.in`,
+`config_cmd.h.in` and `config_key.h.in` can be configured on the command-line
+via `./configure`. See `./configure --help` and also refer to these files for
+more information.
 
 Bonus example:
 
-  ./configure \
-    --prefix=/usr \
-    CONFIG_TINY=1 \
-    CC=clang \
-    CFLAGS="$CFLAGS -flto -static" \
-    -DDFM_NO_COLOR \
-    -DDFM_COL_NAV="VT_SGR(34,7)"
+```
+./configure \
+--prefix=/usr \
+CONFIG_TINY=1 \
+CC=clang \
+CFLAGS="$CFLAGS -flto -static" \
+-DDFM_NO_COLOR \
+-DDFM_COL_NAV="VT_SGR(34,7)"
+```
 
 NOTE: If you are building for an environment without support for the XTerm
-alternate screen, add -DDFM_CLEAR_EDIT to your configure flags.
+alternate screen, add `-DDFM_CLEAR_EDIT` to your configure flags.
 
 
-CONFIGURATION
-________________________________________________________________________________
+## CONFIGURATION
 
 DFM is configured at compile-time via its config files.
 
-* ./configure:     Build system, compilation and installation.
-* config.h.in:     Default settings, colors, etc.
-* config_key.h.in: Keybindings.
-* config_cmd.h.in: Commands.
+* `./configure`:     Build system, compilation and installation.
+* `config.h.in`:     Default settings, colors, etc.
+* `config_key.h.in`: Keybindings.
+* `config_cmd.h.in`: Commands.
 
 Refer to these files for more information.
 
 
---[DPP]-------------------------------------------------------------------------
+### DPP
 
-The config*.in files are processed by dpp (see bin/dpp) so POSIX shell code can
-be used within them. Everything defined by ./configure is also accessible within
-these files as variables.
+The `config*.in` files are processed by dpp (see `bin/dpp`) so POSIX shell code
+can be used within them. Everything defined by `./configure` is also accessible
+within these files as variables.
 
 See https://github.com/dylanaraps/dpp for more information.
 
 
---[Command-line]----------------------------------------------------------------
+### Command-line
 
+```
 usage: dfm [options] [path]
 
 options:
@@ -147,13 +150,15 @@ options:
 
 path:
 directory to open (default: ".")
+```
 
 
---[Environment]-----------------------------------------------------------------
+### Environment
 
 A few things can be set at runtime via environment variables. If unset in the
 environment, default values are derived from the config.h.in file.
 
+```
 - DFM_COPYER         (The clipboard tool to use when copying PWD or file
                       contents. The tool is fed the data via <stdin>)
 
@@ -166,35 +171,38 @@ environment, default values are derived from the config.h.in file.
 - DFM_TRASH          (Program to use when trashing files)
 
 - DFM_TRASH_DIR      (Path to trash directory)
+```
 
-
---[CD On Exit]------------------------------------------------------------------
+### CD On Exit
 
 There are two ways to exit DFM.
 
+```
 1) act_quit           (default 'q')
 2) act_quit_print_pwd (default 'Q')
+```
 
 Exiting with 2) will make DFM output the absolute path to the directory it was
 in. This output can be passed to 'cd' to change directory automatically on exit.
 
+```
 $ cd "$(dfm)"
 $ var=$(dfm)
 $ dfm > file
+```
 
-
-USAGE
-________________________________________________________________________________
+## USAGE
 
 DFM is a single column file-manager with VIM like keybindings. Its basic usage
 is pretty straightforward and anything non-obvious can be divined by looking
 at the actions each key is bound to.
 
 
---[Statusline]------------------------------------------------------------------
+### Statusline
 
 The statusline is as follows:
 
+```
  1/1 [RnHE] [1+] ~0B /path/to/current/directory/<query>
 
  1/1        - The entry number under the cursor and the total visible entries.
@@ -217,15 +225,17 @@ The statusline is as follows:
 
  /path/to   - The current directory.
  /<query>   - The search query if the list was filtered.
+```
 
 
---[View Modes]------------------------------------------------------------------
+### View Modes
 
 There are five view modes: Normal, Size, Permissions, Date Modified and All.
-The view mode can be cycled by pressing <Tab> by default.
+The view mode can be cycled by pressing `<Tab>` by default.
 
 All is the sum of the other view modes and gives an idea of what is shown:
 
+```
 -rwxr-xr-x    16m    4.0K .git/
 -rwxr-xr-x     2h    4.0K bin/
 -rwxr-xr-x     4d    4.0K script/
@@ -248,9 +258,9 @@ All is the sum of the other view modes and gives an idea of what is shown:
 -rw-r--r--    32m     72K dfm.c
 
  2/20 [nH] ~268K /home/dylan/kiss/fork/dfm
+```
 
-
---[Sort Modes]------------------------------------------------------------------
+### Sort Modes
 
 There are seven sort modes: Name, Name reverse, Size, Size reverse,
 Date modified, Date modified reverse, Extension. The sort mode can be cycled by
@@ -259,7 +269,7 @@ pressing '`' (backtick) by default.
 The "Name" sort performs a natural/human sort and puts directories before files.
 
 
---[Prompt]----------------------------------------------------------------------
+### Prompt
 
 The area where searches and commands are inputted is a complete interactive line
 editor supporting all the usual actions (left/right scroll, insert,
@@ -274,7 +284,7 @@ comes time to commit the input it is simply joined together. Make not of this
 detail as it is necessary to know it when creating your own bound commands.
 
 
---[Searching]-------------------------------------------------------------------
+### Searching
 
 There are two search modes: Startswith and Substring. Startswith is bound to '/'
 by default and Substring to '?'. They each perform a case-sensitive and
@@ -284,7 +294,7 @@ Pressing <Enter> confirms the search and the results become navigable. If there
 is only one match, pressing <Enter> will open the entry in a single press.
 
 
---[Marking]---------------------------------------------------------------------
+### Marking
 
 Files can be marked and unmarked (spacebar by default). There are also shortcuts
 to navigate between marks, select all, clear all and to invert the selection.
@@ -304,24 +314,29 @@ the commands are exec'd in the directory containing them.
 
 Example:
 
-  'cp -f %m %d' -> PWD=/path/to/mark_dir cp -f a b c /path/to/pwd
+```
+'cp -f %m %d' -> PWD=/path/to/mark_dir cp -f a b c /path/to/pwd
+```
 
-
---[Commands]--------------------------------------------------------------------
+### Commands
 
 Commands are simply strings which are minimally transformed into argvs and
 executed. Modifiers control how the string will be transformed and executed.
 
+```
 :echo hello                -> echo hello
 :echo %f world             -> foreach entry: echo <entry> world
 :echo %m world             -> echo <entry_1> <entry_2> ... world'.
 :<waycopy                  -> foreach entry: (stdin) waycopy
+```
 
 In addition to these modifiers are the following:
 
+```
 %p                         -> Path to PWD.
 $WORD                      -> Expand environment variable.
 &                          -> Run in background (must be last word)..
+```
 
 NOTE: None of the above transformations pass through or incur the cost of
 running within a shell. They are merely pointer arrays passed to exec().
@@ -332,11 +347,13 @@ evaluated. Also, %m and %f must appear on their own.
 If these are too limiting, prepending a '!' bypasses DFM's internal command mode
 and sends it all to the shell.
 
+```
 :!echo "$@"                -> sh -euc 'echo "$@"' <entry_1> <entry_2> ...
 :!echo "$1" "$2"           -> sh -euc 'echo "$1" "$2"' <entry_1> <entry_2> ...
+```
 
 
---[Bound Commands]--------------------------------------------------------------
+### Bound Commands
 
 Commands can be bound to keys. When a command is bound it can either run
 straight away or open the interactive prompt with pre-filled information.
@@ -344,30 +361,36 @@ Flags can also be set to better integrate the command into DFM.
 
 Move is defined as follows:
 
-  FM_CMD(cmd_move,
-    .prompt = CUT(":"),                - The prompt.
-    .left   = CUT("echo mv -f %m %d"), - Text left of cursor.
-    .enter  = fm_cmd_run,              - Callback.
-    .config = CMD_NOT_MARK_DIR |       - Forbid running in mark directory.
-              CMD_MUT |                - Command may mutate directory.
-              CMD_EXEC_MARK |          - Skip interactive mode if marks.
-              CMD_CONFLICT,            - Prompt on conflicts.
-  )
+```
+FM_CMD(cmd_move,
+.prompt = CUT(":"),                - The prompt.
+.left   = CUT("echo mv -f %m %d"), - Text left of cursor.
+.enter  = fm_cmd_run,              - Callback.
+.config = CMD_NOT_MARK_DIR |       - Forbid running in mark directory.
+          CMD_MUT |                - Command may mutate directory.
+          CMD_EXEC_MARK |          - Skip interactive mode if marks.
+          CMD_CONFLICT,            - Prompt on conflicts.
+)
+```
 
 Chown is defined as follows:
 
-  FM_CMD(cmd_chown,
-    .prompt = CUT(":"),
-    .left   = CUT("chown"),
-    .right  = CUT(" %m"),              - Text right of cursor.
-    .enter  = fm_cmd_run,
-    .config = CMD_MUT,
-  )
+```
+FM_CMD(cmd_chown,
+.prompt = CUT(":"),
+.left   = CUT("chown"),
+.right  = CUT(" %m"),              - Text right of cursor.
+.enter  = fm_cmd_run,
+.config = CMD_MUT,
+)
+```
 
 This opens the interactive prompt and puts the cursor between chown and %m so
 the user can add additional information.
 
-  :chown | %a
+```
+:chown | %a
+```
 
 In addition to fm_cmd_run, fm_cmd_run_sh can be set to bypass DFM's internal
 command mode to run the command in the shell.
@@ -375,8 +398,7 @@ command mode to run the command in the shell.
 See the config_key.h.in and config_cmd.h.in files for more information.
 
 
-DESIGN CONSIDERATIONS
-________________________________________________________________________________
+### DESIGN CONSIDERATIONS
 
 * I employed many tricks in order to keep memory usage low whilst still allowing
   for fast operations and relatively large directory trees.
@@ -442,8 +464,7 @@ ________________________________________________________________________________
      - outside mark dir + %m == bounded mark operations.
 
 
-CONCLUSION
-________________________________________________________________________________
+### CONCLUSION
 
 I had a lot of fun writing this.
 Thank you for reading.
