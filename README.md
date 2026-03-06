@@ -51,19 +51,15 @@ $ make DESTDIR="" install
 
 The configure script takes three forms of arguments.
 
-```
-1) Long-opts:           --prefix=/usr --help
-2) Variables:           CC=/bin/cc CFLAGS="-O3" CONFIG_TINY=1 LDFLAGS=" "
-3) C macro definitions: -DMACRO -DMACRO=VALUE -UMACRO
-```
+1) Long-opts:           `--prefix=/usr`, `--help`
+2) Variables:           `CC=/bin/cc`, `CFLAGS="-O3"`, `CONFIG_TINY=1`, `LDFLAGS=" "`
+3) C macro definitions: `-DMACRO`, `-DMACRO=VALUE`, `-UMACRO`
 
 There are three different build configurations.
 
-```
-1) Default:      -O2
-2) CONFIG_SMALL: -Os + aggressive compiler flags
-3) CONFIG_TINY:  -Oz + CONFIG_SMALL + (you must set CC to clang)
-```
+1) Default:        `-O2`
+2) `CONFIG_SMALL`: `-Os` + aggressive compiler flags
+3) `CONFIG_TINY`:  `-Oz` + `CONFIG_SMALL` + (you must set `CC=clang`)
 
 - To produce a static binary, pass `-static` via `CFLAGS`.
 - To enable LTO, pass `-flto` via `CFLAGS`.
@@ -77,7 +73,7 @@ Bonus example:
 
 ```sh
 ./configure \
-  --prefix=/usr \h
+  --prefix=/usr \
   CONFIG_TINY=1 \
   CC=clang \
   CFLAGS="$CFLAGS -flto -static" \
@@ -91,7 +87,7 @@ alternate screen, add `-DDFM_CLEAR_EDIT` to your configure flags.
 
 ## CONFIGURATION
 
-DFM is configured at compile-time via its config files.
+`dfm` is configured at compile-time via its config files.
 
 * `./configure`:     Build system, compilation and installation.
 * `config.h.in`:     Default settings, colors, etc.
@@ -101,11 +97,11 @@ DFM is configured at compile-time via its config files.
 Refer to these files for more information.
 
 
-### DPP
+### DPP (Dylan's Preprocessor)
 
-The `config*.in` files are processed by dpp (see `bin/dpp`) so POSIX shell code
-can be used within them. Everything defined by `./configure` is also accessible
-within these files as variables.
+The `config*.in` files are processed by `dpp` (see `bin/dpp`) so POSIX shell
+code can be used within them. Everything defined by `./configure` is also
+accessible within these files as variables.
 
 See https://github.com/dylanaraps/dpp for more information.
 
@@ -145,7 +141,7 @@ directory to open (default: ".")
 ### Environment
 
 A few things can be set at runtime via environment variables. If unset in the
-environment, default values are derived from the config.h.in file.
+environment, default values are derived from the `config.h.in` file.
 
 ```
 - DFM_COPYER         (The clipboard tool to use when copying PWD or file
@@ -164,15 +160,15 @@ environment, default values are derived from the config.h.in file.
 
 ### CD On Exit
 
-There are two ways to exit DFM.
+There are two ways to exit `dfm`.
 
 ```
 1) act_quit           (default 'q')
 2) act_quit_print_pwd (default 'Q')
 ```
 
-Exiting with 2) will make DFM output the absolute path to the directory it was
-in. This output can be passed to 'cd' to change directory automatically on exit.
+Exiting with 2) will make `dfm` output the absolute path to the directory it was
+in. This output can be passed to `cd` to change directory automatically on exit.
 
 ```
 $ cd "$(dfm)"
@@ -182,7 +178,7 @@ $ dfm > file
 
 ## USAGE
 
-DFM is a single column file-manager with VIM like keybindings. Its basic usage
+`dfm` is a single column file-manager with VIM like keybindings. Its basic usage
 is pretty straightforward and anything non-obvious can be divined by looking
 at the actions each key is bound to.
 
@@ -198,7 +194,7 @@ The statusline is as follows:
 
  [RnHE]     - Indicators.
 
-              R - Shown when DFM is running as root.
+              R - Shown when dfm is running as root.
               n - Current sort mode: [n]ame, [N]ame reverse, [s]ize,
                   [S]ize reverse, [d]ate modified, [D]ate modified reverse,
                   [e]xtension. If the current directory is too large, in place
@@ -251,9 +247,9 @@ All is the sum of the other view modes and gives an idea of what is shown:
 
 ### Sort Modes
 
-There are seven sort modes: name, name reverse, size, size reverse,
-date modified, date modified reverse, extension. The sort mode can be cycled by
-pressing '`' (backtick) by default.
+There are seven sort modes: `name`, `name reverse`, `size`, `size reverse`,
+`date modified`, `date modified reverse`, `extension`. The sort mode can be
+cycled by pressing '`' (backtick) by default.
 
 The `name` sort performs a natural/human sort and puts directories before files.
 
@@ -275,9 +271,9 @@ detail as it is necessary to know it when creating your own bound commands.
 
 ### Searching
 
-There are two search modes: Startswith and Substring. Startswith is bound to `/`
-by default and Substring to `?`. They each perform a case-sensitive and
-incremental as-you-type search on the current directory's entries.
+There are two search modes: `startswith` (default `/`) and `substring`
+(default `?`). They each perform a case-sensitive and incremental as-you-type
+search on the current directory's entries.
 
 Pressing `<Enter>` confirms the search and the results become navigable. If
 there is only one match, pressing `<Enter>` will open the entry in a single
@@ -294,7 +290,7 @@ The marks can be operated on in three ways.
 
 1) Foreach: A command is executed once per mark.
 2) Bulk:    A command is executed once and given the list of marks as its argv.
-3) Shell:   A shell command is executed (sh -euc "<cmd>" <marks argv>)
+3) Shell:   A shell command is executed (`sh -euc "<cmd>" <marks argv>`)
 
 - NOTE: All three can also be executed in the background.
 - NOTE: If nothing is marked, the entry under the cursor is operated on.
@@ -330,12 +326,12 @@ $WORD                      -> Expand environment variable.
 ```
 
 NOTE: None of the above transformations pass through or incur the cost of
-running within a shell. They are merely pointer arrays passed to exec().
+running within a shell. They are merely pointer arrays passed to `exec()`.
 
 NOTE: `%m` and `%f` cannot be combined and only the first occurrence of `%m` or
 `%f` is evaluated. Also, `%m` and `%f` must appear on their own.
 
-If these are too limiting, prepending a `!` bypasses DFM's internal command mode
+If these are too limiting, prepending a `!` bypasses `dfm`'s internal command mode
 and sends it all to the shell.
 
 ```sh
@@ -348,7 +344,7 @@ and sends it all to the shell.
 
 Commands can be bound to keys. When a command is bound it can either run
 straight away or open the interactive prompt with pre-filled information.
-Flags can also be set to better integrate the command into DFM.
+Flags can also be set to better integrate the command into `dfm`.
 
 Move is defined as follows:
 
@@ -376,15 +372,15 @@ FM_CMD(cmd_chown,
 )
 ```
 
-This opens the interactive prompt and puts the cursor between chown and %m so
-the user can add additional information.
+This opens the interactive prompt and puts the cursor between `chown` and `%m`
+so the user can add additional information.
 
 ```sh
 :chown | %a
 ```
 
-In addition to `fm_cmd_run`, `fm_cmd_run_sh` can be set to bypass DFM's internal
-command mode to run the command in the shell.
+In addition to `fm_cmd_run`, `fm_cmd_run_sh` can be set to bypass `dfm`'s
+internal command mode to run the command in the shell.
 
 See the `config_key.h.in` and `config_cmd.h.in` files for more information.
 
@@ -394,8 +390,8 @@ See the `config_key.h.in` and `config_cmd.h.in` files for more information.
 * I employed many tricks in order to keep memory usage low whilst still allowing
   for fast operations and relatively large directory trees.
 
-* When a directory too large for DFM is entered the statusline sort indicator is
-  replaced with `[T]` to signify truncation, sorting is disabled and the
+* When a directory too large for `dfm` is entered the statusline sort indicator
+  is replaced with `[T]` to signify truncation, sorting is disabled and the
   statusline colored red. Truncation occurs when memory in the name storage or
   entry list is exhausted, whichever comes first. The limits are reasonable and
   unlikely to be reached outside of synthetic directory trees so this isn't
@@ -404,50 +400,50 @@ See the `config_key.h.in` and `config_cmd.h.in` files for more information.
 * File operations using coreutils commands work well but aren't as nice as
   having fully integrated internal operations. I was working on it but it ended
   up being a massive pain in the ass so I abandoned the idea. It's not enough to
-  use the POSIX functions as you will be left fighting TOCTOU race conditions,
+  use the POSIX functions as you will be left fighting `TOCTOU` race conditions,
   control flow hell, error handling madness and other crap. A solution is to
   conditionally use each OS's extension functions (ie, Linux's `copy_file()`,
   `renameat2()`, `O_TMPFILE`, `AT_EMPTY_PATH`, etc) but then you end up stuck in
-  preprocessor ifdef soup.
+  preprocessor `#ifdef` soup.
 
 * UTF8 support intentionally excludes grapheme clusters, emojis and other
   complicated things. Everything else should work just fine though.
 
-* DFM will do partial rendering wherever possible and also tries to do as little
-  display IO as it can (this is what I mean by low-bandwidth in the feature
-  list).
+* `dfm` will do partial rendering wherever possible and also tries to do as
+  little display IO as it can (this is what I mean by low-bandwidth in the
+  feature list).
 
 * The TUI is manually implemented using VT100 escape sequences and a few
   optional modern ones (bracketed paste, XTerm alt screen, synchronized
   updates). Look at `lib/term.h`, `lib/term_key.h`, `lib/vt.h` and scan `dfm.c`
   for `VT_.*` to see how it works.
 
-  NOTE: DFM works in pretty much every terminal emulator in wide use but since
+  NOTE: `dfm` works in pretty much every terminal emulator in wide use but since
   it intentionally doesn't use terminfo it may not display correctly in some
   environments (notably the TTY console in some BSDs). I don't think there's
   anything I can do to remedy this unfortunately.
 
 * The number of marks is bounded only when it comes to materializing them. For
-  1000 marks dfm needs the space to construct an `argv` to accommodate them.
+  1000 marks `dfm` needs the space to construct an `argv` to accommodate them.
     This is not all, if a `cd` is performed, space is also needed to store the mark
     entry names as the new directory will overwrite them. Marks are stored on the
     end of the directory storage growing towards its middle. In other words,
     materialized marks are stored in the free space not taken up by directory
     entries. This creates two scenarios.
 
-  1) Inside the same directory as the marks dfm can mark and operate on all of
+  1) Inside the same directory as the marks `dfm` can mark and operate on all of
      the entries without needing any extra memory as the marks are virtual.
-     However, if %m is used inside the mark directory, dfm must materialize them
-     and the number is bounded by whatever unused memory is available. This
-     doesnt limit operation on files as dfm will process the marks in chunks.
+     However, if `%m` is used inside the mark directory, `dfm` must materialize
+     them and the number is bounded by whatever unused memory is available. This
+     doesn't limit operation on files as `dfm` will process the marks in chunks.
 
 ```
 %f: 900 marks -> n/a       -> cmd <arg>  x 900
 %m: 900 marks -> 300 slots -> cmd <args> x 3
 ```
 
-  2) Outside of the directory dfm needs space to materialize the marks so marks
-     that travel are bounded.
+  2) Outside of the directory `dfm` needs space to materialize the marks so
+     mark that travel are bounded.
 
   In short:
 
@@ -464,6 +460,6 @@ See the `config_key.h.in` and `config_cmd.h.in` files for more information.
 I had a lot of fun writing this.
 Thank you for reading.
 
-Also check out dpp: https://github.com/dylanaraps/dpp
-And my blog: https://dylan.gr
+- Also check out `dpp`: https://github.com/dylanaraps/dpp
+- And my blog: https://dylan.gr
 
