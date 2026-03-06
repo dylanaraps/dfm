@@ -425,11 +425,11 @@ See the `config_key.h.in` and `config_cmd.h.in` files for more information.
 
 * The number of marks is bounded only when it comes to materializing them. For
   1000 marks `dfm` needs the space to construct an `argv` to accommodate them.
-    This is not all, if a `cd` is performed, space is also needed to store the mark
-    entry names as the new directory will overwrite them. Marks are stored on the
-    end of the directory storage growing towards its middle. In other words,
-    materialized marks are stored in the free space not taken up by directory
-    entries. This creates two scenarios.
+  This is not all, if a `cd` is performed, space is also needed to store the mark
+  entry names as the new directory will overwrite them. Marks are stored on the
+  end of the directory storage growing towards its middle. In other words,
+  materialized marks are stored in the free space not taken up by directory
+  entries. This creates two scenarios.
 
   1) Inside the same directory as the marks `dfm` can mark and operate on all of
      the entries without needing any extra memory as the marks are virtual.
@@ -437,22 +437,18 @@ See the `config_key.h.in` and `config_cmd.h.in` files for more information.
      them and the number is bounded by whatever unused memory is available. This
      doesn't limit operation on files as `dfm` will process the marks in chunks.
 
-```
-%f: 900 marks -> n/a       -> cmd <arg>  x 900
-%m: 900 marks -> 300 slots -> cmd <args> x 3
-```
+        %f: 900 marks -> n/a       -> cmd <arg>  x 900
+        %m: 900 marks -> 300 slots -> cmd <args> x 3
 
   2) Outside of the directory `dfm` needs space to materialize the marks so
      mark that travel are bounded.
 
-  In short:
+     In short:
 
-```
-- in      mark dir + %f == boundless mark operations.
-- in      mark dir + %m == boundless mark operations (chunked).
-- outside mark dir + %f == bounded mark operations.
-- outside mark dir + %m == bounded mark operations.
-```
+        - in      mark dir + %f == boundless mark operations.
+        - in      mark dir + %m == boundless mark operations (chunked).
+        - outside mark dir + %f == bounded mark operations.
+        - outside mark dir + %m == bounded mark operations.
 
 
 ### CONCLUSION
