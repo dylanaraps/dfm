@@ -2,7 +2,7 @@
 
 A powerful, simple and snappy terminal file manager with minimal resource usage.
 
-<a href="https://asciinema.org/a/mjFhlSN0VsV1Xt59" target="_blank"><img src="https://asciinema.org/a/mjFhlSN0VsV1Xt59.svg" alt="img" height="210px" align="right"/></a>
+<a href="https://asciinema.org/a/mjFhlSN0VsV1Xt59" target="_blank"><img src="https://asciinema.org/a/mjFhlSN0VsV1Xt59.svg" alt="img" height="213px" align="right"/></a>
 
 Initial Announcement: https://dylan.gr/1772192922
 
