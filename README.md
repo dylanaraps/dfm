@@ -437,18 +437,18 @@ See the `config_key.h.in` and `config_cmd.h.in` files for more information.
      them and the number is bounded by whatever unused memory is available. This
      doesn't limit operation on files as `dfm` will process the marks in chunks.
 
-        %f: 900 marks -> n/a       -> cmd <arg>  x 900
-        %m: 900 marks -> 300 slots -> cmd <args> x 3
+        - `%f`: 900 marks -> n/a       -> cmd <arg>  x 900
+        - `%m`: 900 marks -> 300 slots -> cmd <args> x 3
 
   2) Outside of the directory `dfm` needs space to materialize the marks so
      mark that travel are bounded.
 
      In short:
 
-        - in      mark dir + %f == boundless mark operations.
-        - in      mark dir + %m == boundless mark operations (chunked).
-        - outside mark dir + %f == bounded mark operations.
-        - outside mark dir + %m == bounded mark operations.
+        - in mark dir + `%f` == boundless mark operations.
+        - in mark dir + `%m` == boundless mark operations (chunked).
+        - outside mark dir + `%f` == bounded mark operations.
+        - outside mark dir + `%m` == bounded mark operations.
 
 
 ### CONCLUSION
