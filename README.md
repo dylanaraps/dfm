@@ -1,10 +1,10 @@
-# Dylan's File Manager
+# dfm (Dylan's File Manager)
+
+<a href="https://asciinema.org/a/qvNlrFrGB3xKZXb6GkremjZNp" target="_blank"><img src="https://asciinema.org/a/qvNlrFrGB3xKZXb6GkremjZNp.svg" alt="img" height="210px" align="right"/></a>
 
 A powerful, simple and snappy terminal file manager with low resource usage.
 
 Initial Announcement: https://dylan.gr/1772192922
-
-<a href="https://asciinema.org/a/qvNlrFrGB3xKZXb6GkremjZNp" target="_blank"><img src="https://asciinema.org/a/qvNlrFrGB3xKZXb6GkremjZNp.svg" alt="img" height="210px" align="right"/></a>
 
 * Tiny (`CONFIG_SMALL`: ~90KiB, `CONFIG_TINY`: ~40KiB, `CONFIG_TINY`+ `-static`: ~150KiB)
 * Fast (should only be limited by IO)
