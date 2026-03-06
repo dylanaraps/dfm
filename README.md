@@ -1,18 +1,8 @@
-```
-                 oooooooooo.   oooooooooooo ooo        ooooo
-                 `888'   `Y8b  `888'     `8 `88.       .888'
-                  888      888  888          888b     d'888
-                  888      888  888oooo8     8 Y88. .P  888
-                  888      888  888    "     8  `888'   888
-                  888     d88'  888          8    Y     888
-                 o888bood8P'   o888o        o8o        o888o
-```
-
 # Dylan's File Manager
 
 Initial Announcement: https://dylan.gr/1772192922
 
-* Tiny (`CONFIG_SMALL`: ~90KiB, `CONFIG_TINY`: ~40KiB, static: ~150KiB)
+* Tiny (`CONFIG_SMALL`: ~90KiB, `CONFIG_TINY`: ~40KiB, `CONFIG_TINY`+ `-static`: ~150KiB)
 * Fast (should only be limited by IO)
 * No dynamic memory allocation (~1.5MiB static)
 * Does nothing unless a key is pressed
@@ -40,21 +30,20 @@ Initial Announcement: https://dylan.gr/1772192922
 
 Required:
 
-- POSIX shell
-- POSIX cat, cp, date, mkdir, printf, rm
-- POSIX make
+- POSIX `cat`, `cp`, `date`, `mkdir`, `printf`, `rm`, `sh`
+- POSIX `make`
 - POSIX libc
 - C99 compiler
 
 Optional:
 
-- strip (for `CONFIG_SMALL` and `CONFIG_TINY`)
-- clang (for `CONFIG_TINY`)
+- `strip` (for `CONFIG_SMALL` and `CONFIG_TINY`)
+- `clang` (for `CONFIG_TINY`)
 
 
 ## BUILDING
 
-```
+```sh
 $ ./configure --prefix=/usr
 $ make
 $ make DESTDIR="" install
@@ -76,8 +65,8 @@ There are three different build configurations.
 3) CONFIG_TINY:  -Oz + CONFIG_SMALL + (you must set CC to clang)
 ```
 
-To produce a static binary, pass `-static` via `CFLAGS`.
-To enable LTO, pass `-flto` via `CFLAGS`.
+- To produce a static binary, pass `-static` via `CFLAGS`.
+- To enable LTO, pass `-flto` via `CFLAGS`.
 
 Everything contained within `./configure`, `Makefile.in`, `config.h.in`,
 `config_cmd.h.in` and `config_key.h.in` can be configured on the command-line
@@ -86,14 +75,14 @@ more information.
 
 Bonus example:
 
-```
+```sh
 ./configure \
---prefix=/usr \
-CONFIG_TINY=1 \
-CC=clang \
-CFLAGS="$CFLAGS -flto -static" \
--DDFM_NO_COLOR \
--DDFM_COL_NAV="VT_SGR(34,7)"
+  --prefix=/usr \h
+  CONFIG_TINY=1 \
+  CC=clang \
+  CFLAGS="$CFLAGS -flto -static" \
+  -DDFM_NO_COLOR \
+  -DDFM_COL_NAV="VT_SGR(34,7)"
 ```
 
 NOTE: If you are building for an environment without support for the XTerm
@@ -262,11 +251,11 @@ All is the sum of the other view modes and gives an idea of what is shown:
 
 ### Sort Modes
 
-There are seven sort modes: Name, Name reverse, Size, Size reverse,
-Date modified, Date modified reverse, Extension. The sort mode can be cycled by
+There are seven sort modes: name, name reverse, size, size reverse,
+date modified, date modified reverse, extension. The sort mode can be cycled by
 pressing '`' (backtick) by default.
 
-The "Name" sort performs a natural/human sort and puts directories before files.
+The `name` sort performs a natural/human sort and puts directories before files.
 
 
 ### Prompt
@@ -276,7 +265,7 @@ editor supporting all the usual actions (left/right scroll, insert,
 bracketed clipboard paste, backspace, delete, prev/next word, etc).
 The default keybindings match what is found in readline and POSIXy shells.
 
-As of now there is no <Tab> complete or up/down arrow history cycling.
+As of now there is no `<Tab>` complete or up/down arrow history cycling.
 
 NOTE: The prompt is implemented as a gap buffer. There are two buffers, cursor
 left and cursor right with the cursor sitting inbetween both buffers. When it
@@ -286,18 +275,20 @@ detail as it is necessary to know it when creating your own bound commands.
 
 ### Searching
 
-There are two search modes: Startswith and Substring. Startswith is bound to '/'
-by default and Substring to '?'. They each perform a case-sensitive and
+There are two search modes: Startswith and Substring. Startswith is bound to `/`
+by default and Substring to `?`. They each perform a case-sensitive and
 incremental as-you-type search on the current directory's entries.
 
-Pressing <Enter> confirms the search and the results become navigable. If there
-is only one match, pressing <Enter> will open the entry in a single press.
+Pressing `<Enter>` confirms the search and the results become navigable. If
+there is only one match, pressing `<Enter>` will open the entry in a single
+press.
 
 
 ### Marking
 
-Files can be marked and unmarked (spacebar by default). There are also shortcuts
-to navigate between marks, select all, clear all and to invert the selection.
+Files can be marked and unmarked (`<spacebar>` by default). There are also
+shortcuts to navigate between marks, select all, clear all and to invert the
+selection.
 
 The marks can be operated on in three ways.
 
@@ -305,8 +296,8 @@ The marks can be operated on in three ways.
 2) Bulk:    A command is executed once and given the list of marks as its argv.
 3) Shell:   A shell command is executed (sh -euc "<cmd>" <marks argv>)
 
-NOTE: All three can also be executed in the background.
-NOTE: If nothing is marked, the entry under the cursor is operated on.
+- NOTE: All three can also be executed in the background.
+- NOTE: If nothing is marked, the entry under the cursor is operated on.
 
 These operations are defined as "commands" which can be typed or bound to keys.
 To avoid copying data, only the basenames of marks are passed to commands and
@@ -314,8 +305,8 @@ the commands are exec'd in the directory containing them.
 
 Example:
 
-```
-'cp -f %m %d' -> PWD=/path/to/mark_dir cp -f a b c /path/to/pwd
+```sh
+cp -f %m %d -> PWD=/path/to/mark_dir cp -f a b c /path/to/pwd
 ```
 
 ### Commands
@@ -341,13 +332,13 @@ $WORD                      -> Expand environment variable.
 NOTE: None of the above transformations pass through or incur the cost of
 running within a shell. They are merely pointer arrays passed to exec().
 
-NOTE: %m and %f cannot be combined and only the first occurrence of %m or %f is
-evaluated. Also, %m and %f must appear on their own.
+NOTE: `%m` and `%f` cannot be combined and only the first occurrence of `%m` or
+`%f` is evaluated. Also, `%m` and `%f` must appear on their own.
 
-If these are too limiting, prepending a '!' bypasses DFM's internal command mode
+If these are too limiting, prepending a `!` bypasses DFM's internal command mode
 and sends it all to the shell.
 
-```
+```sh
 :!echo "$@"                -> sh -euc 'echo "$@"' <entry_1> <entry_2> ...
 :!echo "$1" "$2"           -> sh -euc 'echo "$1" "$2"' <entry_1> <entry_2> ...
 ```
@@ -361,7 +352,7 @@ Flags can also be set to better integrate the command into DFM.
 
 Move is defined as follows:
 
-```
+```c
 FM_CMD(cmd_move,
 .prompt = CUT(":"),                - The prompt.
 .left   = CUT("echo mv -f %m %d"), - Text left of cursor.
@@ -375,7 +366,7 @@ FM_CMD(cmd_move,
 
 Chown is defined as follows:
 
-```
+```c
 FM_CMD(cmd_chown,
 .prompt = CUT(":"),
 .left   = CUT("chown"),
@@ -388,14 +379,14 @@ FM_CMD(cmd_chown,
 This opens the interactive prompt and puts the cursor between chown and %m so
 the user can add additional information.
 
-```
+```sh
 :chown | %a
 ```
 
-In addition to fm_cmd_run, fm_cmd_run_sh can be set to bypass DFM's internal
+In addition to `fm_cmd_run`, `fm_cmd_run_sh` can be set to bypass DFM's internal
 command mode to run the command in the shell.
 
-See the config_key.h.in and config_cmd.h.in files for more information.
+See the `config_key.h.in` and `config_cmd.h.in` files for more information.
 
 
 ### DESIGN CONSIDERATIONS
@@ -404,7 +395,7 @@ See the config_key.h.in and config_cmd.h.in files for more information.
   for fast operations and relatively large directory trees.
 
 * When a directory too large for DFM is entered the statusline sort indicator is
-  replaced with [T] to signify truncation, sorting is disabled and the
+  replaced with `[T]` to signify truncation, sorting is disabled and the
   statusline colored red. Truncation occurs when memory in the name storage or
   entry list is exhausted, whichever comes first. The limits are reasonable and
   unlikely to be reached outside of synthetic directory trees so this isn't
@@ -415,8 +406,8 @@ See the config_key.h.in and config_cmd.h.in files for more information.
   up being a massive pain in the ass so I abandoned the idea. It's not enough to
   use the POSIX functions as you will be left fighting TOCTOU race conditions,
   control flow hell, error handling madness and other crap. A solution is to
-  conditionally use each OS's extension functions (ie, Linux's copy_file,
-  renameat2, O_TMPFILE, AT_EMPTY_PATH, etc) but then you end up stuck in
+  conditionally use each OS's extension functions (ie, Linux's `copy_file()`,
+  `renameat2()`, `O_TMPFILE`, `AT_EMPTY_PATH`, etc) but then you end up stuck in
   preprocessor ifdef soup.
 
 * UTF8 support intentionally excludes grapheme clusters, emojis and other
@@ -427,9 +418,9 @@ See the config_key.h.in and config_cmd.h.in files for more information.
   list).
 
 * The TUI is manually implemented using VT100 escape sequences and a few
-  optional modern ones (bracketed paste, XTerm alt screen,
-  synchronized updates). Look at lib/term.h, lib/term_key.h, lib/vt.h and scan
-  dfm.c for VT_.* to see how it works.
+  optional modern ones (bracketed paste, XTerm alt screen, synchronized
+  updates). Look at `lib/term.h`, `lib/term_key.h`, `lib/vt.h` and scan `dfm.c`
+  for `VT_.*` to see how it works.
 
   NOTE: DFM works in pretty much every terminal emulator in wide use but since
   it intentionally doesn't use terminfo it may not display correctly in some
@@ -437,12 +428,12 @@ See the config_key.h.in and config_cmd.h.in files for more information.
   anything I can do to remedy this unfortunately.
 
 * The number of marks is bounded only when it comes to materializing them. For
-  1000 marks dfm needs the space to construct an argv to accommodate them. This
-  is not all, if a 'cd' is performed, space is also needed to store the mark
-  entry names as the new directory will overwrite them. Marks are stored on the
-  end of the directory storage growing towards its middle. In other words,
-  /materialized/ marks are stored in the free space not taken up by directory
-  entries. This creates two scenarios.
+  1000 marks dfm needs the space to construct an `argv` to accommodate them.
+    This is not all, if a `cd` is performed, space is also needed to store the mark
+    entry names as the new directory will overwrite them. Marks are stored on the
+    end of the directory storage growing towards its middle. In other words,
+    materialized marks are stored in the free space not taken up by directory
+    entries. This creates two scenarios.
 
   1) Inside the same directory as the marks dfm can mark and operate on all of
      the entries without needing any extra memory as the marks are virtual.
@@ -450,18 +441,22 @@ See the config_key.h.in and config_cmd.h.in files for more information.
      and the number is bounded by whatever unused memory is available. This
      doesnt limit operation on files as dfm will process the marks in chunks.
 
-     %f: 900 marks -> n/a       -> cmd <arg>  x 900
-     %m: 900 marks -> 300 slots -> cmd <args> x 3
+```
+%f: 900 marks -> n/a       -> cmd <arg>  x 900
+%m: 900 marks -> 300 slots -> cmd <args> x 3
+```
 
   2) Outside of the directory dfm needs space to materialize the marks so marks
      that travel are bounded.
 
   In short:
 
-     - in      mark dir + %f == boundless mark operations.
-     - in      mark dir + %m == boundless mark operations (chunked).
-     - outside mark dir + %f == bounded mark operations.
-     - outside mark dir + %m == bounded mark operations.
+```
+- in      mark dir + %f == boundless mark operations.
+- in      mark dir + %m == boundless mark operations (chunked).
+- outside mark dir + %f == bounded mark operations.
+- outside mark dir + %m == bounded mark operations.
+```
 
 
 ### CONCLUSION
