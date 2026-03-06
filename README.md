@@ -29,8 +29,33 @@ Initial Announcement: https://dylan.gr/1772192922
 * CD on exit
 * And more...
 
+## Table of Contents
 
-## DEPENDENCIES
+<!-- vim-markdown-toc GFM -->
+
+* [Dependencies](#dependencies)
+* [Building](#building)
+* [Configuration](#configuration)
+    * [DPP (Dylan's Preprocessor)](#dpp-dylans-preprocessor)
+    * [Command-line](#command-line)
+    * [Environment](#environment)
+    * [CD On Exit](#cd-on-exit)
+* [Usage](#usage)
+    * [Statusline](#statusline)
+    * [View Modes](#view-modes)
+    * [Sort Modes](#sort-modes)
+    * [Prompt](#prompt)
+    * [Searching](#searching)
+    * [Marking](#marking)
+    * [Commands](#commands)
+    * [Bound Commands](#bound-commands)
+* [Design Considerations](#design-considerations)
+* [Conclusion](#conclusion)
+
+<!-- vim-markdown-toc -->
+
+
+## Dependencies
 
 Required:
 
@@ -45,7 +70,7 @@ Optional:
 - `clang` (for `CONFIG_TINY`)
 
 
-## BUILDING
+## Building
 
 ```sh
 $ ./configure --prefix=/usr
@@ -89,7 +114,7 @@ NOTE: If you are building for an environment without support for the XTerm
 alternate screen, add `-DDFM_CLEAR_EDIT` to your configure flags.
 
 
-## CONFIGURATION
+## Configuration
 
 `dfm` is configured at compile-time via its config files.
 
@@ -180,7 +205,7 @@ $ var=$(dfm)
 $ dfm > file
 ```
 
-## USAGE
+## Usage
 
 `dfm` is a single column file-manager with VIM like keybindings. Its basic usage
 is pretty straightforward and anything non-obvious can be divined by looking
@@ -389,7 +414,7 @@ internal command mode to run the command in the shell.
 See the `config_key.h.in` and `config_cmd.h.in` files for more information.
 
 
-### DESIGN CONSIDERATIONS
+## Design Considerations
 
 * I employed many tricks in order to keep memory usage low whilst still allowing
   for fast operations and relatively large directory trees.
@@ -455,7 +480,7 @@ See the `config_key.h.in` and `config_cmd.h.in` files for more information.
         - outside mark dir + `%m` == bounded mark operations.
 
 
-### CONCLUSION
+## Conclusion
 
 I had a lot of fun writing this.
 Thank you for reading.
