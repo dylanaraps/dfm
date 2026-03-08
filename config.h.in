@@ -147,7 +147,7 @@
 #define DFM_DIR_MAX  (1 << 15)
 
 //
-// Size of hash table for directory entries (load factor ~0.66).
+// Size of hash table for directory entries.
 // NOTE: Must be a power of 2.
 //
 #define DFM_DIR_HT_CAP (DFM_DIR_MAX << 1)
