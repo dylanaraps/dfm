@@ -1,5 +1,5 @@
 //
-// DFM - Dylan's File Manager - Configuration file.
+// DFM - Dylan's File Manager - Command Configuration file.
 //
 // Commands can be created using the FM_CMD macro which declares a function
 // that holds a struct fm_cmd and calls fm_cmd().
