@@ -18,7 +18,7 @@ Initial Announcement: https://dylan.gr/1772192922
 * Inline image viewing (sixel, kitty)
 * Multiple view modes (name, size, permissions, mtime, ...)
 * Multiple sort modes (name, extension, size, mtime, reverse, ...)
-* Ranger-style bulk rename
+* Ranger-style bulk rename <img src="https://private-user-images.githubusercontent.com/6799467/562146556-ec5dc60e-f083-4bf5-aed9-631fe9f72fab.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzMzMDkzMzcsIm5iZiI6MTc3MzMwOTAzNywicGF0aCI6Ii82Nzk5NDY3LzU2MjE0NjU1Ni1lYzVkYzYwZS1mMDgzLTRiZjUtYWVkOS02MzFmZTlmNzJmYWIucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI2MDMxMiUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNjAzMTJUMDk1MDM3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9OTM3ZGEwY2I2OGM5NTQ4MzVkMmQxYTQ0ODUxODEwYzkxNDA2YmNjMTRlM2NmZmViMTgwN2FlMGI0YzJlNTdiYiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.GtSIAoiR4UjK0adExh0AueK1DXg3qos84bAUgGU_3Gc" alt="screenshot" height="213px" align="right"/>
 * Incremental as-you-type search
 * Bookmarks
 * Vim-like keybindings
