@@ -36,7 +36,7 @@
 //
 // Default image viewer.
 // The command is executed as follows:
-// 'arg0' 'arg1' '{col}x{rol}' 'img'
+// 'arg0' 'arg1' '{col}x{row}' 'img'
 //
 #define DFM_IMG_MODE      "chafa" // "kitty"
 #define DFM_IMG_KITTY_CMD "kitten", "icat", "--align", "left", "--place"
