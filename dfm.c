@@ -2309,7 +2309,10 @@ fm_exec(struct fm *p, int in, const char *d, const char *const a[], bool bg, boo
   int r = run_cmd(bg ? p->t.null : p->t.fd, in, d, a, bg);
   if (tf) fm_term_raw(p);
   if (r == -1) {
-    fm_draw_err(p, S("exec"), errno);
+    if (errno == ENOENT)
+      fm_draw_err(p, S("exec: command not found"), 0);
+    else
+      fm_draw_err(p, S("exec"), errno);
     return -1;
   }
   if (WIFEXITED(r)) {
