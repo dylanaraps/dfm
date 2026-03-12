@@ -115,7 +115,7 @@
 #define DFM_COL_SPEC       VT_SGR(33,1)
 #define DFM_COL_UNKNOWN    VT_SGR(31,7)
 
-#define DFM_COL_NAV        VT_SGR(7)
+#define DFM_COL_NAV        VT_SGR(7,34)
 #define DFM_COL_NAV_ERR    VT_SGR(7,31)
 #define DFM_COL_NAV_MSG    VT_SGR(7,32)
 #define DFM_COL_NAV_CMD    VT_SGR(7,36)
