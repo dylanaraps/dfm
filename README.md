@@ -15,6 +15,7 @@ Initial Announcement: https://dylan.gr/1772192922
 * Manually implemented interactive line editor
 * Efficient low-bandwidth partial rendering
 * UTF8 support (minus grapheme clusters and other unruly things)
+* Inline image viewing (sixel, kitty)
 * Multiple view modes (name, size, permissions, mtime, ...)
 * Multiple sort modes (name, extension, size, mtime, reverse, ...)
 * Ranger-style bulk rename
@@ -45,6 +46,7 @@ Initial Announcement: https://dylan.gr/1772192922
     * [View Modes](#view-modes)
     * [Sort Modes](#sort-modes)
     * [Prompt](#prompt)
+    * [Images](#images)
     * [Searching](#searching)
     * [Marking](#marking)
     * [Commands](#commands)
@@ -185,6 +187,8 @@ environment, default values are derived from the `config.h.in` file.
 - DFM_TRASH          (Program to use when trashing files)
 
 - DFM_TRASH_DIR      (Path to trash directory)
+
+- DFM_IMG_MODE       (Image mode to use: 'chafa' (default), 'kitty')
 ```
 
 ### CD On Exit
@@ -297,6 +301,17 @@ NOTE: The prompt is implemented as a gap buffer. There are two buffers, cursor
 left and cursor right with the cursor sitting inbetween both buffers. When it
 comes time to commit the input it is simply joined together. Make not of this
 detail as it is necessary to know it when creating your own bound commands.
+
+
+### Images
+
+Images can be viewed inside of `dfm` by pressing `i` by default. This will
+display the image and wait for a keypress before returning to the directory
+listing. Two backends are supported: `sixel` (via `chafa`) and `kitty`.
+
+The mode can be set in `config.h.in` or at runtime via an environment variable.
+
+![Image viewer](https://private-user-images.githubusercontent.com/6799467/562138699-23bcd982-ad50-47c3-bd40-7fc0f4deca83.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzMzMDg1NTksIm5iZiI6MTc3MzMwODI1OSwicGF0aCI6Ii82Nzk5NDY3LzU2MjEzODY5OS0yM2JjZDk4Mi1hZDUwLTQ3YzMtYmQ0MC03ZmMwZjRkZWNhODMucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI2MDMxMiUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNjAzMTJUMDkzNzM5WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MzhmNDYzYjIyODdiMDhhMTdhMjFkYmRkMjY2Yjc5NjUyNzMwOTk5MTczMDI3MDY3ODk2Njg2NmEyNzhkN2NiOSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.-Qwa4zE0m7zcj9rFFNy7p95A8PoIypitokz8RJx5pd8)
 
 
 ### Searching

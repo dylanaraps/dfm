@@ -34,6 +34,15 @@
 #define DFM_BOOKMARK_9 ""
 
 //
+// Default image viewer.
+// The command is executed as follows:
+// 'arg0' 'arg1' '{col}x{rol}' 'img'
+//
+#define DFM_IMG_MODE      "chafa" // "kitty"
+#define DFM_IMG_KITTY_CMD "kitten", "icat", "--align", "left", "--place"
+#define DFM_IMG_CHAFA_CMD "chafa", "--format=sixel", "-s"
+
+//
 // Default trash utility.
 // Can be set at runtime via environment: \$DFM_TRASH
 //

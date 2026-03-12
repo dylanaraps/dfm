@@ -89,6 +89,7 @@ static inline void (*fm_key(u32 cp))(struct fm *)
   case 'n':                  return cmd_mkdir;
   case 'r':                  return cmd_rename;
   case 'x':                  return act_stat;
+  case 'i':                  return act_view_image;
   case 'z':                  return act_alt_buffer;
   case 'p':                  return cmd_chmod;
   case 'P':                  return cmd_chown;

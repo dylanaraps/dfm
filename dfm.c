@@ -195,6 +195,7 @@ struct fm {
 
   s64 tz;
   u8 nl;
+  u8 im;
 };
 
 // Entry Virtual {{{
@@ -3015,6 +3016,41 @@ act_stat(struct fm *p)
 }
 
 static inline void
+act_view_image(struct fm *p)
+{
+  if (p->c == SIZE_MAX) return;
+  cut e = fm_ent(p, p->c);
+  u64 m = ent_load(p, p->c);
+  if (ENT_IS_DIR(ent_get(m, TYPE))) return;
+  p->f |= FM_REDRAW;
+  STR_PUSH(&p->io, VT_ED2 VT_CUP1);
+  fm_draw_flush(p);
+  p->io.l = 0;
+  str_push_u32(&p->io, p->col);
+  str_push_c(&p->io, 'x');
+  str_push_u32(&p->io, p->row - 1);
+  int r = 0;
+  if (p->im == 'k') {
+    STR_PUSH(&p->io, "@0x0\0");
+    const char *const a[] = { DFM_IMG_KITTY_CMD, p->io.m, e.d, NULL };
+    r = fm_exec(p, -1, NULL, a, 0, 0);
+  } else {
+    str_terminate(&p->io);
+    const char *const a[] = { DFM_IMG_CHAFA_CMD, p->io.m, e.d, NULL };
+    r = fm_exec(p, -1, NULL, a, 0, 0);
+  }
+  p->io.l = 0;
+  if (r < 0) return;
+  rl_clear(&p->r);
+  STR_PUSH(&p->r.cl, VT_DECTCEM_N " viewing: ");
+  str_push(&p->r.cl, e.d, e.l);
+  fm_draw_buf(p, CUT(DFM_COL_NAV));
+  fm_draw_flush(p);
+  rl_clear(&p->r);
+  term_key_read(p->t.fd, &p->k);
+}
+
+static inline void
 act_open(struct fm *p)
 {
   fm_open(p);
@@ -3531,6 +3567,7 @@ fm_init(struct fm *p)
   if (fm_nest(p) == -1)
     return -1;
   p->opener = get_env("DFM_OPENER", DFM_OPENER);
+  p->im = get_env("DFM_IMG_MODE", DFM_IMG_MODE).d[0];
   p->dfd = AT_FDCWD;
   p->ds = DFM_DEFAULT_SORT;
   p->dv = DFM_DEFAULT_VIEW;
