@@ -84,7 +84,7 @@ $ make DESTDIR="" install
 The configure script takes three forms of arguments.
 
 1) Long-opts:           `--prefix=/usr`, `--help`
-2) Variables:           `CC=/bin/cc`, `CFLAGS="-O3"`, `CONFIG_TINY=1`, `LDFLAGS=" "`
+2) Variables:           `CC=/bin/cc`, `CFLAGS="-O3"`, `LDFLAGS=" "`
 3) C macro definitions: `-DMACRO`, `-DMACRO=VALUE`, `-UMACRO`
 
 There are three different build configurations.
@@ -106,7 +106,7 @@ Bonus example:
 ```sh
 ./configure \
   --prefix=/usr \
-  CONFIG_TINY=1 \
+  -DCONFIG_TINY=1 \
   CC=clang \
   CFLAGS="$CFLAGS -flto -static" \
   -DDFM_NO_COLOR \

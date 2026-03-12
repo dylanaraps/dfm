@@ -83,7 +83,7 @@ case ${DPP_LEVEL:-} in '')
   for a do case $a in
     --help) cat "$0"; exit 0 ;;
        -D*) mo="${mo:-}$a
-" _a=${a#-D}; export "${_a%%=*}="  ;;
+" _a=${a#-D}; export "${_a%%=*}=1"  ;;
        -U*) cc_flags="$cc_flags $a"; unset  "${a#-U}" ;;
      *?=?*) export "${a#--}" ;;
   esac done
