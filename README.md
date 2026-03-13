@@ -11,14 +11,14 @@ Initial Announcement: https://dylan.gr/1772192922
 * No dynamic memory allocation (~1.5MiB static)
 * Does nothing unless a key is pressed
 * No dependencies outside of POSIX/libc
-* Manually implemented TUI <img src="https://private-user-images.githubusercontent.com/6799467/559461614-9138e9c5-804c-4337-8ede-a69be71e560d.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzI4MjIzNzcsIm5iZiI6MTc3MjgyMjA3NywicGF0aCI6Ii82Nzk5NDY3LzU1OTQ2MTYxNC05MTM4ZTljNS04MDRjLTQzMzctOGVkZS1hNjliZTcxZTU2MGQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI2MDMwNiUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNjAzMDZUMTgzNDM3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MmQwM2Y1N2EzOTcwMGY5MjE1YWQxOGYxNmQyZTM5Y2YyMmZkNjI3MDM4ODMxNGYxNDc5MmRlYjFmYTVhYzk2ZiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.n3BgCL4x-pPo-wFo8XO9otGSjOyCPae2-mZ2slZxn3g" alt="screenshot" height="213px" align="right"/>
+* Manually implemented TUI <img src="https://dylan.gr/img/dfm1.png" alt="screenshot" height="213px" align="right"/>
 * Manually implemented interactive line editor
 * Efficient low-bandwidth partial rendering
 * UTF8 support (minus grapheme clusters and other unruly things)
 * Inline image viewing (sixel, kitty)
 * Multiple view modes (name, size, permissions, mtime, ...)
 * Multiple sort modes (name, extension, size, mtime, reverse, ...)
-* Ranger-style bulk rename <img src="https://private-user-images.githubusercontent.com/6799467/562146556-ec5dc60e-f083-4bf5-aed9-631fe9f72fab.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzMzMDkzMzcsIm5iZiI6MTc3MzMwOTAzNywicGF0aCI6Ii82Nzk5NDY3LzU2MjE0NjU1Ni1lYzVkYzYwZS1mMDgzLTRiZjUtYWVkOS02MzFmZTlmNzJmYWIucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI2MDMxMiUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNjAzMTJUMDk1MDM3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9OTM3ZGEwY2I2OGM5NTQ4MzVkMmQxYTQ0ODUxODEwYzkxNDA2YmNjMTRlM2NmZmViMTgwN2FlMGI0YzJlNTdiYiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.GtSIAoiR4UjK0adExh0AueK1DXg3qos84bAUgGU_3Gc" alt="screenshot" height="213px" align="right"/>
+* Ranger-style bulk rename <img src="https://dylan.gr/img/dfm2.png" alt="screenshot" height="213px" align="right"/>
 * Incremental as-you-type search
 * Bookmarks
 * Vim-like keybindings
@@ -312,7 +312,7 @@ listing. Two backends are supported: `sixel` (via `chafa`) and `kitty`.
 
 The mode can be set in `config.h.in` or at runtime via an environment variable.
 
-![Image viewer](https://private-user-images.githubusercontent.com/6799467/562138699-23bcd982-ad50-47c3-bd40-7fc0f4deca83.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzMzMDg1NTksIm5iZiI6MTc3MzMwODI1OSwicGF0aCI6Ii82Nzk5NDY3LzU2MjEzODY5OS0yM2JjZDk4Mi1hZDUwLTQ3YzMtYmQ0MC03ZmMwZjRkZWNhODMucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI2MDMxMiUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNjAzMTJUMDkzNzM5WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MzhmNDYzYjIyODdiMDhhMTdhMjFkYmRkMjY2Yjc5NjUyNzMwOTk5MTczMDI3MDY3ODk2Njg2NmEyNzhkN2NiOSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.-Qwa4zE0m7zcj9rFFNy7p95A8PoIypitokz8RJx5pd8)
+![Image viewer](https://dylan.gr/img/neofetch.png)
 
 
 ### Searching
