@@ -3808,7 +3808,7 @@ fm_run(struct fm *p)
       fm_input(p);
   }
   fm_term_free(p);
-  if (!(p->f & FM_PRINT_PWD)) p->pwd.l = 0;
+  if (!(p->f & (FM_PRINT_PWD|FM_PICKER))) p->pwd.l = 0;
   return 0;
 }
 
