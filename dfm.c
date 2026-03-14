@@ -3355,6 +3355,39 @@ act_mark_invert(struct fm *p)
   p->f |= FM_REDRAW_DIR|FM_REDRAW_NAV;
 }
 
+static inline void
+act_mark_range(struct fm *p)
+{
+  if (p->c == SIZE_MAX) return;
+  if (!(p->f & FM_MARK_PWD))
+    fm_mark_init(p);
+  usize ml = SIZE_MAX;
+  usize nw = BITSET_W(p->dl);
+  for (usize b = 0; b < nw; b++) {
+    u64 w = p->vm[b] & p->v[b];
+    while (w) {
+      usize i = (b << 6) + u64_ctz(w);
+      w &= w - 1;
+      if (i >= p->dl) break;
+      ml = i;
+    }
+  }
+  if (ml == SIZE_MAX) {
+    fm_mark_toggle_idx(p, p->c);
+    p->f |= FM_REDRAW_DIR | FM_REDRAW_NAV;
+    return;
+  }
+  usize lo = MIN(ml, p->c);
+  usize hi = MAX(ml, p->c);
+  for (usize i = lo; i <= hi; i++) {
+    if (!ent_v_geto(p, i, VIS)) continue;
+    if (!ent_v_geto(p, i, MARK))
+      fm_mark_toggle_idx(p, i);
+  }
+  fm_mark_invalidate(p);
+  p->f |= FM_REDRAW_DIR|FM_REDRAW_NAV;
+}
+
 // }}}
 
 // Input {{{

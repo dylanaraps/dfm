@@ -102,6 +102,9 @@ static inline void (*fm_key(u32 cp))(struct fm *)
 
   case 'M':                  return act_cd_mark_directory;
   case ' ':                  return act_mark_toggle;
+  case K(MOD_ALT, ' '):      return act_mark_range;
+  case 'v':                  return act_mark_toggle;
+  case 'V':                  return act_mark_range;
   case K(MOD_CTRL, 'a'):     return act_mark_toggle_all;
   case 'I':                  return act_mark_invert;
   case 'C':                  return act_mark_clear;
