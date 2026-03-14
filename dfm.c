@@ -2884,11 +2884,7 @@ act_toggle_root(struct fm *p)
     str_push_c(&p->ppwd, ' ');
     str_push_c(&p->ppwd, p->f & FM_HIDDEN ? '+' : '-');
     STR_PUSH(&p->ppwd, "H ");
-    str_push(&p->ppwd, c.d, c.l);
-    if (c.l) {
-      STR_PUSH(&p->ppwd, " -c ");
-      str_push(&p->ppwd, c.d, c.l);
-    }
+    str_push_c(&p->ppwd, 0);
     bool q = p->f & FM_SEARCH && p->vql;
     usize qo = p->ppwd.l + 4;
     if (q) {
