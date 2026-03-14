@@ -79,6 +79,7 @@ static const char DFM_HELP[] =
   "-H | +H        toggle hidden files (-H off, +H on)\n"
   "-p             picker mode (print selected path to stdout and exit)\n"
   "-o <opener>    program to use when opening files (default: xdg-open)\n"
+  "-c <name>      position cursor over 'name' instead of first entry\n"
   "-s <mode>      change default sort\n"
   "  n  name\n"
   "  N  name reverse\n"
@@ -169,6 +170,7 @@ struct fm {
   u64 v[BITSET_W(DFM_DIR_MAX)];
   u16 vp[BITSET_W(DFM_DIR_MAX)];
   usize vl;
+
   char vq[DFM_NAME_MAX];
   usize vql;
   usize vqw;
@@ -196,9 +198,12 @@ struct fm {
   fm_filter sf;
 
   s64 tz;
+
   u8 nl;
   u8 im;
+
   const char *a0;
+  cut ast;
 };
 
 // Entry Virtual {{{
@@ -2864,19 +2869,25 @@ act_toggle_root(struct fm *p)
   else if (!pe.l)
     fm_draw_err(p, S("DFM_SU not set"), 0);
   else {
+    cut c = p->c == SIZE_MAX ? CUT_NULL : fm_ent(p, p->c);
     usize o = p->ppwd.l;
     STR_PUSH(&p->ppwd, "env DFM_LEVEL=");
     str_push_c(&p->ppwd, p->nl ? p->nl : '0');
     str_push_c(&p->ppwd, ' ');
     str_push_s(&p->ppwd, p->a0);
+    if (c.l) {
+      STR_PUSH(&p->ppwd, " -c ");
+      str_push(&p->ppwd, c.d, c.l);
+    }
     str_terminate(&p->ppwd);
     p->ppwd.l = o;
     if (!strcmp(basename_l(pe.d, pe.l), "su")) {
-      const char *const a[] = { pe.d, "-c", p->ppwd.m + o, NULL };
+      const char *const a[] = { pe.d, "-c", p->ppwd.m + o, 0 };
       fm_exec(p, -1, NULL, a, 0, 1);
     } else {
       p->ppwd.m[o + 15] = 0;
-      const char *const a[] = { pe.d, "env", p->ppwd.m + 5, p->a0, NULL };
+      const char *const a[] = {
+        pe.d, "env", p->ppwd.m + 5, p->a0, c.l ? "-c" : 0, c.d, 0 };
       fm_exec(p, -1, NULL, a, 0, 1);
     }
   }
@@ -3744,6 +3755,12 @@ fm_run(struct fm *p)
 {
   if (fm_term_init(p) < 0) return -1;
   rl_init(&p->r, p->col, CUT_NULL);
+
+  if (p->ast.l) {
+    fm_scroll_to(p, p->ast);
+    fm_cursor_sync(p);
+  }
+
   for (; likely(!term_dead(&p->t)); ) {
     fm_update(p);
     fm_draw(p);
@@ -3798,6 +3815,11 @@ main(int argc, char *argv[])
       n = arg_next_positional(&A);
       if (!n) goto arg_no_val;
       p.dv = *n;
+      continue;
+    case 'c':
+      n = arg_next_positional(&A);
+      if (!n) goto arg_no_val;
+      p.ast = (cut){ n, strlen(n) };
       continue;
     case '-':
       if (!strcmp(a.pos, "--help")) {
