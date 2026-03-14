@@ -103,6 +103,8 @@ static const char DFM_HELP[] =
   "DFM_COPYER         program used to copy PWD and file contents.\n"
   "DFM_TRASH          program used to trash files.\n"
   "DFM_TRASH_DIR      path to trash directory.\n"
+  "DFM_IMG_MODE       image made to use ('chafa', 'kitty')\n"
+  "DFM_SU             privilege escalation tool to use ('sudo', 'doas', ...)\n"
 ;
 
 enum fm_opt {
