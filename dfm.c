@@ -196,6 +196,7 @@ struct fm {
   s64 tz;
   u8 nl;
   u8 im;
+  const char *a0;
 };
 
 // Entry Virtual {{{
@@ -2853,6 +2854,33 @@ act_quit_print_pwd(struct fm *p)
 }
 
 static inline void
+act_toggle_root(struct fm *p)
+{
+  cut pe = get_env("DFM_SU", DFM_SU);
+  if (p->f & FM_ROOT)
+    term_set_dead(&p->t, 1);
+  else if (!pe.l)
+    fm_draw_err(p, S("DFM_SU not set"), 0);
+  else {
+    usize o = p->ppwd.l;
+    STR_PUSH(&p->ppwd, "env DFM_LEVEL=");
+    str_push_c(&p->ppwd, p->nl ? p->nl : '0');
+    str_push_c(&p->ppwd, ' ');
+    str_push_s(&p->ppwd, p->a0);
+    str_terminate(&p->ppwd);
+    p->ppwd.l = o;
+    if (!strcmp(basename_l(pe.d, pe.l), "su")) {
+      const char *const a[] = { pe.d, "-c", p->ppwd.m + o, NULL };
+      fm_exec(p, -1, NULL, a, 0, 1);
+    } else {
+      p->ppwd.m[o + 15] = 0;
+      const char *const a[] = { pe.d, "env", p->ppwd.m + 5, p->a0, NULL };
+      fm_exec(p, -1, NULL, a, 0, 1);
+    }
+  }
+}
+
+static inline void
 act_cd_home(struct fm *p)
 {
   cut h = get_env("HOME", "");
@@ -3700,6 +3728,7 @@ int
 main(int argc, char *argv[])
 {
   static struct fm p;
+  p.a0 = argv[0];
   str *s = &p.pwd;
 
   if (fm_init(&p) < 0) {

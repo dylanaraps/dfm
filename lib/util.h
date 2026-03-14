@@ -336,5 +336,14 @@ path_resolve(char *s, usize l)
   return w;
 }
 
+static inline const char *
+basename_l(const char *s, usize l)
+{
+  for (usize i = l; i; i--)
+    if (s[i - 1] == '/')
+      return s + i;
+  return s;
+}
+
 #endif // DYLAN_UTIL_H
 

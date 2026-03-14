@@ -50,6 +50,7 @@ Initial Announcement: https://dylan.gr/1772192922
     * [Searching](#searching)
     * [Marking](#marking)
     * [Commands](#commands)
+    * [Privilege Escalation](#privilege-escalation)
     * [Bound Commands](#bound-commands)
 * [Design Considerations](#design-considerations)
 * [Conclusion](#conclusion)
@@ -190,6 +191,8 @@ environment, default values are derived from the `config.h.in` file.
 - DFM_TRASH_DIR      (Path to trash directory)
 
 - DFM_IMG_MODE       (Image mode to use: 'chafa' (default), 'kitty')
+
+- DFM_SU             (Privilege escalation tool to use: 'sudo' (default))
 ```
 
 ### CD On Exit
@@ -384,6 +387,19 @@ and sends it all to the shell.
 :!echo "$@"                -> sh -euc 'echo "$@"' <entry_1> <entry_2> ...
 :!echo "$1" "$2"           -> sh -euc 'echo "$1" "$2"' <entry_1> <entry_2> ...
 ```
+
+
+### Privilege Escalation
+
+Commands can be run as root by prepending `sudo` or a similar tool on the
+command-line. For more complex situations, pressing `Z` by default will use
+`DFM_SU` (default `sudo`) to spawn another `dfm` as `root`. The statusline will
+be a different color, show the nest level and display an `R` indicator to make
+the escalation obvious. Pressing `Z` again inside of this escalated mode quits
+and returns to the original `dfm`.
+
+This can be configured at runtime using the environment variable `DFM_SU` and
+at compile time via the `config.h.in` file.
 
 
 ### Bound Commands

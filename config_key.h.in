@@ -91,6 +91,7 @@ static inline void (*fm_key(u32 cp))(struct fm *)
   case 'x':                  return act_stat;
   case 'i':                  return act_view_image;
   case 'z':                  return act_alt_buffer;
+  case 'Z':                  return act_toggle_root;
   case 'p':                  return cmd_chmod;
   case 'P':                  return cmd_chown;
   case 'B':                  return cmd_bulk_rename;

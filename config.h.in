@@ -34,6 +34,13 @@
 #define DFM_BOOKMARK_9 ""
 
 //
+// Default privilege escalation utiliy.
+// This is used to become root in dfm (default 'Z').
+// Values: "sudo", "doas", "ssu", "su", "run0", etc
+//
+#define DFM_SU "sudo"
+
+//
 // Default image viewer.
 // The command is executed as follows:
 // 'arg0' 'arg1' '{col}x{row}' 'img'
