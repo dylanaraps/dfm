@@ -19,7 +19,7 @@
 # Program configuration.
 #
 export CFG_NAME=dfm
-export CFG_VERSION=1.0.1
+export CFG_VERSION=1.0.2
 export c_version=c99
 
 #
