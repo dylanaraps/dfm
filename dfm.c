@@ -2875,6 +2875,10 @@ act_toggle_root(struct fm *p)
     str_push_c(&p->ppwd, p->nl ? p->nl : '0');
     str_push_c(&p->ppwd, ' ');
     str_push_s(&p->ppwd, p->a0);
+    STR_PUSH(&p->ppwd, " -s ");
+    str_push_c(&p->ppwd, p->ds);
+    STR_PUSH(&p->ppwd, " -v ");
+    str_push_c(&p->ppwd, p->dv);
     if (c.l) {
       STR_PUSH(&p->ppwd, " -c ");
       str_push(&p->ppwd, c.d, c.l);
@@ -2886,8 +2890,11 @@ act_toggle_root(struct fm *p)
       fm_exec(p, -1, NULL, a, 0, 1);
     } else {
       p->ppwd.m[o + 15] = 0;
+      char ds[2] = {p->ds, 0 };
+      char dv[2] = {p->dv, 0 };
       const char *const a[] = {
-        pe.d, "env", p->ppwd.m + 5, p->a0, c.l ? "-c" : 0, c.d, 0 };
+        pe.d, "env", p->ppwd.m + 5, p->a0,
+        "-s", ds, "-v", dv, c.l ? "-c" : 0, c.d, 0 };
       fm_exec(p, -1, NULL, a, 0, 1);
     }
   }
