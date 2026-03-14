@@ -80,6 +80,7 @@ static const char DFM_HELP[] =
   "-p             picker mode (print selected path to stdout and exit)\n"
   "-o <opener>    program to use when opening files (default: xdg-open)\n"
   "-c <name>      position cursor over 'name' instead of first entry\n"
+  "-q <query>     start in search results (\"*query\" for substring)\n"
   "-s <mode>      change default sort\n"
   "  n  name\n"
   "  N  name reverse\n"
@@ -203,6 +204,7 @@ struct fm {
   u8 im;
 
   const char *a0;
+  const char *aq;
   cut ast;
 };
 
@@ -2879,9 +2881,20 @@ act_toggle_root(struct fm *p)
     str_push_c(&p->ppwd, p->ds);
     STR_PUSH(&p->ppwd, " -v ");
     str_push_c(&p->ppwd, p->dv);
+    str_push_c(&p->ppwd, ' ');
+    str_push_c(&p->ppwd, p->f & FM_HIDDEN ? '+' : '-');
+    STR_PUSH(&p->ppwd, "H ");
+    str_push(&p->ppwd, c.d, c.l);
     if (c.l) {
       STR_PUSH(&p->ppwd, " -c ");
       str_push(&p->ppwd, c.d, c.l);
+    }
+    bool q = p->f & FM_SEARCH && p->vql;
+    usize qo = p->ppwd.l + 4;
+    if (q) {
+      STR_PUSH(&p->ppwd, " -q ");
+      if (p->sf == fm_filter_substr) str_push_c(&p->ppwd, '*');
+      str_push(&p->ppwd, p->vq, p->vql);
     }
     str_terminate(&p->ppwd);
     p->ppwd.l = o;
@@ -2894,7 +2907,9 @@ act_toggle_root(struct fm *p)
       char dv[2] = {p->dv, 0 };
       const char *const a[] = {
         pe.d, "env", p->ppwd.m + 5, p->a0,
-        "-s", ds, "-v", dv, c.l ? "-c" : 0, c.d, 0 };
+        p->f & FM_HIDDEN ? "+H" : "-H",
+        "-s", ds, "-v", dv, c.l ? "-c" : 0, c.d,
+        q ? "-q" : 0, p->ppwd.m + qo, 0 };
       fm_exec(p, -1, NULL, a, 0, 1);
     }
   }
@@ -3763,6 +3778,20 @@ fm_run(struct fm *p)
   if (fm_term_init(p) < 0) return -1;
   rl_init(&p->r, p->col, CUT_NULL);
 
+  if (p->aq) {
+    if (p->aq[0] == '*') {
+      p->sf = fm_filter_substr;
+      p->aq++;
+    } else
+      p->sf = fm_filter_startswith;
+    str_push_s(&p->r.cl, p->aq);
+    str_terminate(&p->r.cl);
+    rl_cl_sync(&p->r);
+    p->f |= FM_SEARCH;
+    fm_cmd_search(p, &p->r.cl);
+    rl_clear(&p->r);
+  }
+
   if (p->ast.l) {
     fm_scroll_to(p, p->ast);
     fm_cursor_sync(p);
@@ -3817,6 +3846,10 @@ main(int argc, char *argv[])
       n = arg_next_positional(&A);
       if (!n) goto arg_no_val;
       p.ds = fm_sort_fn(*n) ? *n : 'n';
+      continue;
+    case 'q':
+      p.aq = arg_next_positional(&A);
+      if (!p.aq) goto arg_no_val;
       continue;
     case 'v':
       n = arg_next_positional(&A);

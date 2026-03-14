@@ -149,6 +149,7 @@ options:
 -p             picker mode (print selected path to stdout and exit)
 -o <opener>    program to use when opening files (default: xdg-open)
 -c <name>      position cursor over 'name' instead of first entry
+-q <query>     start in search results ("*query" for substring)
 -s <mode>      change default sort
   n  name
   N  name reverse
