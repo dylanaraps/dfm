@@ -43,7 +43,7 @@ clean:
 
 install: $CFG_NAME
 	$MKDIR -p "$prefix/bin"
-	$CP -f "\${DESTDIR}$prefix/bin/$CFG_NAME"
+	$CP -f "$CFG_NAME" "\${DESTDIR}$prefix/bin/$CFG_NAME"
 
 .PHONY: all clean install
 
