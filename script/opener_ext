@@ -18,7 +18,7 @@ case $1 in
 
   *.svg)
     exec inkscape "$1"
-  ;; 
+  ;;
 
   *?*)
     exec "${EDITOR:-vim}" "$1"

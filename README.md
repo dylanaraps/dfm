@@ -72,7 +72,7 @@ Optional:
 - `strip` (for `CONFIG_SMALL` and `CONFIG_TINY`)
 - `clang` (for `CONFIG_TINY`)
 - `chafa` (for image view using `sixel`)
-- `kitty` (for image view `kitty`)
+- `kitty` (for image view using `kitty`)
 
 ## Building
 
