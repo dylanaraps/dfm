@@ -3084,8 +3084,11 @@ act_view_image(struct fm *p)
   cut e = fm_ent(p, p->c);
   u64 m = ent_load(p, p->c);
   if (ENT_IS_DIR(ent_get(m, TYPE))) return;
-  p->f |= FM_REDRAW;
   STR_PUSH(&p->io, VT_ED2 VT_CUP1);
+  if (p->im == 'k')
+    STR_PUSH(&p->io, VT_ESC "]2;dfm: kitty preview (q to quit)" "\a");
+  else
+    STR_PUSH(&p->io, VT_ESC "]2;dfm: chafa preview (q to quit)" "\a");
   fm_draw_flush(p);
   p->io.l = 0;
   str_push_u32(&p->io, p->col);
@@ -3103,13 +3106,12 @@ act_view_image(struct fm *p)
   }
   p->io.l = 0;
   if (r < 0) return;
-  rl_clear(&p->r);
-  STR_PUSH(&p->r.cl, VT_DECTCEM_N " viewing: ");
-  str_push(&p->r.cl, e.d, e.l);
-  fm_draw_buf(p, CUT(DFM_COL_NAV));
-  fm_draw_flush(p);
-  rl_clear(&p->r);
-  term_key_read(p->t.fd, &p->k);
+  for (;;) {
+    if (!term_key_read(p->t.fd, &p->k)) return;
+    if (p->k.c == 'q') break;
+  }
+  STR_PUSH(&p->io, VT_ESC "]2;dfm" "\a");
+  p->f |= FM_REDRAW;
 }
 
 static inline void
@@ -3910,4 +3912,3 @@ e:
 }
 
 // }}}
-
