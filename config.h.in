@@ -47,7 +47,8 @@
 //
 #define DFM_IMG_MODE      "chafa" // "kitty"
 #define DFM_IMG_KITTY_CMD "kitten", "icat", "--loop", "1", "--align", "left", "--place"
-#define DFM_IMG_CHAFA_CMD "chafa", "--format=sixel", "--animate=off", "-s"
+#define DFM_IMG_CHAFA_CMD "chafa", "--format=sixel", "--animate=off", \
+  "--margin-bottom=1", "--margin-right=1", "-s"
 
 //
 // Default trash utility.
