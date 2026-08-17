@@ -356,10 +356,33 @@ Example:
 cp -f %m %d -> PWD=/path/to/mark_dir cp -f a b c /path/to/pwd
 ```
 
+Marked entries can be operated on from another directory:
+
+1) Move the cursor over an entry and press `<spacebar>` to mark it.
+2) Press `;` to open the `:cd ` prompt, type a path and press `<Enter>`.
+3) Run an operation on the marked entries.
+
+The default operation keys are:
+
+```text
+y  copy
+m  move
+s  link
+d  remove
+t  trash
+```
+
+The operation uses the directory containing the marks as its source and the
+current directory as its destination when applicable. If no entries are marked,
+the entry under the cursor is used instead.
+
 ### Commands
 
 Commands are simply strings which are minimally transformed into argvs and
 executed. Modifiers control how the string will be transformed and executed.
+
+Press `;` to change directory using the `:cd ` prompt. Press `:` to open the
+general command prompt.
 
 ```
 :echo hello                -> echo hello
@@ -522,4 +545,3 @@ Thank you for reading.
 
 - Also check out `dpp`: https://github.com/dylanaraps/dpp
 - And my blog: https://dylan.gr
-
